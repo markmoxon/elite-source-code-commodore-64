@@ -16,7 +16,7 @@ See [my profile](https://github.com/markmoxon) for more repositories to explore.
 
 ![Screenshot of Elite on the Commodore 64](https://elite.bbcelite.com/images/github/Elite-Commodore64.png)
 
-This repository contains the original source code for Elite on the Commodore 64, with every single line documented and (for the most part) explained. It is literally the original source code, just heavily commented.
+This repository contains the original source code for Ian Bell and David Braben's classic game Elite on the Commodore 64, with every single line documented and (for the most part) explained. It is literally the original source code, just heavily commented.
 
 It is a companion to the [elite.bbcelite.com website](https://elite.bbcelite.com).
 
