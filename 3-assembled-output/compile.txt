@@ -2650,7 +2650,7 @@ Reload at &4000
 S.C.WORDS &700  &B00  &4000  &4000 
 Saving file '3-assembled-output/WORDS.bin'
 .FONT
-     0B00   00 00 00 ... INCBIN "versions/c64/1-source-files/fonts/C.FONT.bin"
+     0B00   00 00 00 ... INCBIN "1-source-files/fonts/C.FONT.bin"
 .IANTOK
 .TKN1
      0E00   57
@@ -44336,9 +44336,9 @@ Saving file '3-assembled-output/ELTJ.bin'
      B72B   B5
 .musicstart
      B72C   B5
-     B72D   A7 26 26 ... INCBIN "versions/c64/1-source-files/music/gma/C.COMUDAT.bin"
+     B72D   A7 26 26 ... INCBIN "1-source-files/music/gma/C.COMUDAT.bin"
 .THEME
-     C164   A7 05 05 ... INCBIN "versions/c64/1-source-files/music/gma/C.THEME.bin"
+     C164   A7 05 05 ... INCBIN "1-source-files/music/gma/C.THEME.bin"
 .F%
      CCD7
 ELITE K
@@ -44360,9 +44360,9 @@ NA2% = &2619
 .W%
      4000
 .LODATA
-     4000   4C 32 24 ... INCBIN "versions/c64/3-assembled-output/LODATA.bin"
+     4000   4C 32 24 ... INCBIN "3-assembled-output/LODATA.bin"
 .SHIPS
-     5600   A5 D0 A3 ... INCBIN "versions/c64/3-assembled-output/SHIPS.bin"
+     5600   A5 D0 A3 ... INCBIN "3-assembled-output/SHIPS.bin"
      758D   1F
      758E   3F
      758F   58
@@ -45289,7 +45289,7 @@ NA2% = &2619
      7A78   A4
      7A79   F4
 .spritp
-     7A7A   00 00 00 ... INCBIN "versions/c64/3-assembled-output/SPRITE.bin"
+     7A7A   00 00 00 ... INCBIN "3-assembled-output/SPRITE.bin"
      7C3A   38
      7C3B   35
      7C3C   25
@@ -45613,7 +45613,7 @@ NA2% = &2619
      7D79   B9
 .DIALS
      7D7A
-     7D92   02 02 02 ... INCBIN "versions/c64/1-source-files/images/C.CODIALS.bin"
+     7D92   02 02 02 ... INCBIN "1-source-files/images/C.CODIALS.bin"
      865A   F5
 .V%
      865B
