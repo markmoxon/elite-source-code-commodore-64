@@ -35011,7 +35011,7 @@ ENDIF
  DEY                    ; Decrement the counter
 
  BNE DKL3               ; And loop back for the next key, until we have just
-                        ; KLO+1
+                        ; cleared KLO+1
 
  STA KL                 ; Clear KL, which is used for logging keys that don't
                         ; appear in the keyboard table
