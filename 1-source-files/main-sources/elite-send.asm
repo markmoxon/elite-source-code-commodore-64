@@ -548,13 +548,13 @@
  EOR #%00100000     ; (SHEILA $6C) bit 5, so CB2 interrupt has a low output
  STA VIA+$6C        ; (as we set this to high output in GetFile)
 
-.L12D5
+.data1
 
  LDA VIA+$6D        ; Set A to the 6522 User VIA interrupt flag register IFR
                     ; (SHEILA $6D)
 
  AND #%00010000     ; Loop back to keep reading the IFR until bit 4 is set,
- BEQ L12D5          ; which will happen when an active edge occurs on CB1
+ BEQ data1          ; which will happen when an active edge occurs on CB1
 
  LDA VIA+$6D        ; Set bit 5 of the IFR to clear the timer 2 interupt
  ORA #%00100000
