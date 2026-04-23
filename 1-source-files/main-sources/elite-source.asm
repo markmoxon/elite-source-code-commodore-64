@@ -37809,7 +37809,7 @@ ENDIF
                         ; this vertex's entry in the XX3 heap will still be 255,
                         ; which we can check in part 9 to see if the laser
                         ; vertex is visible (and therefore whether we should
-                        ; draw laser lines if the ship is firing on us)
+                        ; draw laser lines if the ship is firing at us)
 
  LDA XX1+6              ; Set (A T) = (z_hi z_lo)
  STA T
