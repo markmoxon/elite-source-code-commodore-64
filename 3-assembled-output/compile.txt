@@ -45819,7 +45819,7 @@ V% = &865B
      12CD   AD 6C FE   LDA &FE6C
      12D0   49 20      EOR #&20
      12D2   8D 6C FE   STA &FE6C
-.L12D5
+.data1
      12D5   AD 6D FE   LDA &FE6D
      12D8   29 10      AND #&10
      12DA   F0 F9      BEQ &12D5

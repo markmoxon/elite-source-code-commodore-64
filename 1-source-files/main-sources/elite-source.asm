@@ -12419,7 +12419,7 @@ ENDIF
  STX RAT2               ; opposite directions but are quite aligned, so set
                         ; RAT2 = 0 instead of the default value of 4, so we
                         ; always apply roll and pitch when we turn the ship
-                        ; towards the planet
+                        ; all the way around towards the planet
 
 .ttt
 
@@ -12654,8 +12654,8 @@ ENDIF
                         ; If we get here, we refine our approach using pitch and
                         ; roll to aim for the station
 
- LDX #0                 ; Set RAT2 = 0
- STX RAT2
+ LDX #0                 ; Set RAT2 = 0 so we always apply roll and pitch when we
+ STX RAT2               ; refine the ship's approach
 
  STX INWK+30            ; Set the pitch counter to 0 to stop any pitching
 
