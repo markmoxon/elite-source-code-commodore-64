@@ -2078,13 +2078,19 @@ ENDMACRO
  ECHR 'N'
  EJMP 2
  ETWO '-', '-'
- ECHR '5'
- ECHR '.'
- ECHR ' '
- ECHR 'E'
- ECHR 'X'
- ETWO 'I', 'T'
- ETWO '-', '-'
+
+                        ; --- Mod: Code removed for improved disk menu: ------->
+
+;ECHR '5'
+;ECHR '.'
+;ECHR ' '
+;ECHR 'E'
+;ECHR 'X'
+;ETWO 'I', 'T'
+;ETWO '-', '-'
+
+                        ; --- End of removed code ----------------------------->
+
  EQUB VE
 
  ETWO 'D', 'I'          ; Token 2:      "DISK"
@@ -6242,29 +6248,99 @@ ENDMACRO
  ECHR '!'
  EQUB VE
 
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+ ECHR '5'               ; Token 27:     "5. EXIT{crlf}
+ ECHR '.'               ;               "
+ ECHR ' '
+ ECHR 'E'
+ ECHR 'X'
+ ETWO 'I', 'T'
+ ETWO '-', '-'
+ EQUB VE
+
+ ECHR '5'               ; Token 28:     "5. CATALOGUE DISK{crlf}
+ ECHR '.'               ;                6. DELETE FILE{crlf}
+ ECHR ' '               ;                7. EXIT{crlf}
+ ECHR 'C'               ;               "
+ ETWO 'A', 'T'
+ ECHR 'A'
+ ETWO 'L', 'O'
+ ECHR 'G'
+ ECHR 'U'
+ ECHR 'E'
+ ECHR ' '
+ ETWO 'D', 'I'
+ ECHR 'S'
+ ECHR 'K'
+ ETWO '-', '-'
+ ECHR '6'
+ ECHR '.'
+ ECHR ' '
+ ECHR 'D'
+ ECHR 'E'
+ ETWO 'L', 'E'
+ ECHR 'T'
+ ECHR 'E'
+ ECHR ' '
+ ECHR 'F'
+ ECHR 'I'
+ ETWO 'L', 'E'
+ ETWO '-', '-'
+ ECHR '7'
+ ECHR '.'
+ ECHR ' '
+ ECHR 'E'
+ ECHR 'X'
+ ETWO 'I', 'T'
+ ETWO '-', '-'
+ EQUB VE
+
+ ETWO '-', '-'          ; Token 29:     "{crlf}FILE DELETED"
+ ECHR 'F'
+ ECHR 'I'
+ ETWO 'L', 'E'
+ ECHR ' '
+ ECHR 'D'
+ ECHR 'E'
+ ETWO 'L', 'E'
+ ECHR 'T'
+ ETWO 'E', 'D'
+ EQUB VE
+
+                        ; --- End of added code ------------------------------->
+
 .endian
 
-IF _GMA_RELEASE OR _SOURCE_DISK_FILES
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- EQUB $3A, $4C, $44, $41, $58, $58, $31, $2B    ; These bytes appear to be
- EQUB $31, $3A, $41, $44, $43, $23, $30, $3A    ; unused and just contain random
- EQUB $53, $54, $41, $58, $58, $31, $35, $2B    ; workspace noise left over from
- EQUB $31, $3A, $4A, $4D, $50, $4C, $4C, $35    ; the BBC Micro assembly process
- EQUB $33, $0D, $21, $7A, $3D, $2E, $4C, $4C
- EQUB $35, $32, $20, $4C, $44, $41, $58, $58
- EQUB $31, $3A, $53
+;IF _GMA_RELEASE OR _SOURCE_DISK_FILES
+;
+;EQUB $3A, $4C, $44, $41, $58, $58, $31, $2B    ; These bytes appear to be
+;EQUB $31, $3A, $41, $44, $43, $23, $30, $3A    ; unused and just contain random
+;EQUB $53, $54, $41, $58, $58, $31, $35, $2B    ; workspace noise left over from
+;EQUB $31, $3A, $4A, $4D, $50, $4C, $4C, $35    ; the BBC Micro assembly process
+;EQUB $33, $0D, $21, $7A, $3D, $2E, $4C, $4C
+;EQUB $35, $32, $20, $4C, $44, $41, $58, $58
+;EQUB $31, $3A, $53
+;
+;ELIF _SOURCE_DISK_BUILD
+;
+;EQUB $3E, $4C, $20, $59, $3C, $32, $31, $37    ; These bytes appear to be
+;EQUB $3E, $20, $54, $41, $4B, $45, $20, $3C    ; unused and just contain random
+;EQUB $32, $31, $39, $3E, $3C, $30, $30, $31    ; workspace noise left over from
+;EQUB $3E, $28, $59, $2F, $4E, $29, $3F, $3C    ; the BBC Micro assembly process
+;EQUB $30, $31, $32, $3E, $3C, $30, $31, $35
+;EQUB $3E, $3C, $30, $30, $31, $3E, $3C, $30
+;EQUB $30, $38, $3E
+;
+;ENDIF
 
-ELIF _SOURCE_DISK_BUILD
+                        ; --- And replaced by: -------------------------------->
 
- EQUB $3E, $4C, $20, $59, $3C, $32, $31, $37    ; These bytes appear to be
- EQUB $3E, $20, $54, $41, $4B, $45, $20, $3C    ; unused and just contain random
- EQUB $32, $31, $39, $3E, $3C, $30, $30, $31    ; workspace noise left over from
- EQUB $3E, $28, $59, $2F, $4E, $29, $3F, $3C    ; the BBC Micro assembly process
- EQUB $30, $31, $32, $3E, $3C, $30, $31, $35
- EQUB $3E, $3C, $30, $30, $31, $3E, $3C, $30
- EQUB $30, $38, $3E
+ ORG $1D00
 
-ENDIF
+                        ; --- End of replacement ------------------------------>
 
 ; ******************************************************************************
 ;

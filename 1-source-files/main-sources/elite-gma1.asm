@@ -147,7 +147,16 @@ IF _GMA86_PAL
 
  EQUB $13, $00          ; Track and sector for the "GMA5" file
 
- EQUB $14, $08          ; Track and sector for the "GMA6" file
+                        ; --- Mod: Code removed for improved disk menu: ------->
+
+\EQUB $14, $08          ; Track and sector for the "GMA6" file
+
+                        ; --- And replaced by: -------------------------------->
+
+ EQUB $14, $09          ; Track and sector for the "GMA6" file
+
+                        ; --- End of replacement ------------------------------>
+
 
 ENDIF
 

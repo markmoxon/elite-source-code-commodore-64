@@ -355,14 +355,29 @@ ENDIF
  TKN1 = $0E00           ; The address of the extended token table, as set in
                         ; elite-data.asm
 
- RUPLA = TKN1 + $C28    ; The address of the extended system description system
+                        ; --- Mod: Code removed for improved disk menu: ------->
+
+\RUPLA = TKN1 + $C28    ; The address of the extended system description system
+\                       ; number table, as set in elite-data.asm
+\
+\RUGAL = TKN1 + $C42    ; The address of the extended system description galaxy
+\                       ; number table, as set in elite-data.asm
+\
+\RUTOK = TKN1 + $C5C    ; The address of the extended system description token
+\                       ; table, as set in elite-data.asm
+
+                        ; --- And replaced by: -------------------------------->
+
+ RUPLA = $1A21          ; The address of the extended system description system
                         ; number table, as set in elite-data.asm
 
- RUGAL = TKN1 + $C42    ; The address of the extended system description galaxy
+ RUGAL = $1A3B          ; The address of the extended system description galaxy
                         ; number table, as set in elite-data.asm
 
- RUTOK = TKN1 + $C5C    ; The address of the extended system description token
+ RUTOK = $1A55          ; The address of the extended system description token
                         ; table, as set in elite-data.asm
+
+                        ; --- End of replacement ------------------------------>
 
  SCBASE = $4000         ; The address of the screen bitmap
 
@@ -459,6 +474,14 @@ ENDIF
  KERNALSETMSG = $FF90   ; The Kernal function to control Kernal messages
 
  KERNALLOAD = $FFD5     ; The Kernal function to load a file from a device
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+ KERNALOPEN = $FFC0     ; The Kernal function to open file
+
+ KERNALCLOSE = $FFC3    ; The Kernal function to close a file
+
+                        ; --- End of added code ------------------------------->
 
 ; ******************************************************************************
 ;
@@ -6273,13 +6296,23 @@ ENDIF
 ;
 ; ******************************************************************************
 
- EQUS ":0.E."           ; The drive part of this string (the "0") is updated
-                        ; with the chosen drive in the GTNMEW routine, but the
-                        ; directory part (the "E") is fixed. The variable is
-                        ; followed directly by the commander file at NA%, which
-                        ; starts with the commander name, so the full string at
-                        ; NA%-5 is in the format ":0.E.jameson", which gives the
-                        ; full filename of the commander file
+                        ; --- Mod: Code removed for improved disk menu: ------->
+
+\EQUS ":0.E."           ; The drive part of this string (the "0") is updated
+\                       ; with the chosen drive in the GTNMEW routine, but the
+\                       ; directory part (the "E") is fixed. The variable is
+\                       ; followed directly by the commander file at NA%, which
+\                       ; starts with the commander name, so the full string at
+\                       ; NA%-5 is in the format ":0.E.jameson", which gives the
+\                       ; full filename of the commander file
+
+                        ; --- And replaced by: -------------------------------->
+
+ EQUS "  S0:"           ; The scratch command for deleting a commander file
+                        ; this string is otherwise unused in this version of
+                        ; Elite
+
+                        ; --- End of replacement ------------------------------>
 
 .NA%
 
@@ -6853,13 +6886,17 @@ ENDIF
 
  NEXT
 
- EQUD $10204080         ; These bytes appear to be unused; they contain a copy
- EQUD $01020408         ; of the TWOS variable, and the original source has a
- EQUW $4080             ; commented out label .TWOS
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- EQUD $030C30C0         ; These bytes appear to be unused; they contain a copy
-                        ; of the DTWOS variable, and the original source has a
-                        ; commented out label .DTWOS
+;EQUD $10204080         ; These bytes appear to be unused; they contain a copy
+;EQUD $01020408         ; of the TWOS variable, and the original source has a
+;EQUW $4080             ; commented out label .TWOS
+;
+;EQUD $030C30C0         ; These bytes appear to be unused; they contain a copy
+;                       ; of the DTWOS variable, and the original source has a
+;                       ; commented out label .DTWOS
+
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -15457,15 +15494,19 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.MUT3
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- LDX ALP1               ; Set P = ALP1, though this gets overwritten by the
- STX P                  ; following, so this has no effect
+;.MUT3
+;
+;LDX ALP1               ; Set P = ALP1, though this gets overwritten by the
+;STX P                  ; following, so this has no effect
+;
+;                       ; Fall through into MUT2 to do the following:
+;                       ;
+;                       ;   (S R) = XX(1 0)
+;                       ;   (A P) = Q * A
 
-                        ; Fall through into MUT2 to do the following:
-                        ;
-                        ;   (S R) = XX(1 0)
-                        ;   (A P) = Q * A
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -17725,6 +17766,185 @@ ENDIF
  EQUB 115               ; Token 35: a random extended token between 115 and 119
  EQUB 120               ; Token 36: a random extended token between 120 and 124
  EQUB 125               ; Token 37: a random extended token between 125 and 129
+
+; ******************************************************************************
+;
+;       Name: DeleteFile
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Delete a commander file
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.DeleteFile
+
+ JSR GTNMEW             ; If we get here then option 2 (save) was chosen, so
+                        ; call GTNMEW to fetch the name of the commander file
+                        ; to save (including drive number and directory) into
+                        ; INWK
+
+ LDA #&60               ; Modify the KERNALSETUP routine so it returns before
+ STA dmod2              ; performing the KERNALSETNAM call at the end, so we can
+                        ; insert our own KERNALSETNAM instead
+                        ;
+                        ; This modifies the LDA thislong instruction at dmod2
+                        ; into an RTS instruction (opcode &60)
+
+ LDA #15                ; Modify the SETLFS command in KERNALSETUP to secondary
+ STA dmod1+1            ; address 15, so we can send a scratch command to the
+                        ; drive
+
+ JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
+                        ; which includes swapping the contents of zero page with
+                        ; the page at $CE00 (so the Kernal functions get a zero
+                        ; page that works for them, and any changes they make do
+                        ; not corrupt the game's zero page variables)
+
+ LDA #&AD               ; Revert the modification to restore the KERNALSETUP
+ STA dmod2              ; routine to its previous state, by restoring the LDA
+                        ; instruction (opcode &AD)
+
+ LDA #0                 ; Revert the modification to restore the KERNALSETUP
+ STA dmod1+1            ; routine to its previous state, by restoring SETLFS to
+                        ; secondary address 0
+
+ LDA thislong           ; Set A to 3 + the length of the entered filename in
+ CLC                    ; thislong so it includes the scratch command "S0:" at
+ ADC #3                 ; NA%-3 (which was copied into INWK by GTNMEW)
+
+ LDX #(INWK+2)          ; Call SETNAM to set the filename parameters as
+ LDY #0                 ; follows:
+ JSR KERNALSETNAM       ;
+                        ;   * A = filename length
+                        ;
+                        ;   * (Y X) = address of filename (Y is set to zero as
+                        ;             INWK is in zero page)
+                        ;
+                        ; In this case (Y X) = INWK+2, which covers the "S0:"
+                        ; string at INWK+2 and the filename at INWK+5
+
+ JSR KERNALOPEN         ; Open the file
+
+ BCS skip1              ; If the open command returns an error then the C flag
+                        ; will be set, so skip the close command and move
+                        ; straight on to the error reporting
+
+ LDA #1                 ; Close the file (which KERNALSETUP set up as logical
+ JSR KERNALCLOSE        ; file 1) to delete it
+
+.skip1
+
+ PHP                    ; If something goes wrong with the deletion then the C
+                        ; flag will be set, so save this on the stack so we can
+                        ; check it below
+
+ SEI                    ; Disable interrupts while we configure the CIA and
+                        ; VIC-II
+
+ BIT CIA+$D             ; Reading from register $D of CIA1 will acknowledge any
+                        ; interrupts and clear them, so this line acknowledges
+                        ; any pending interrupts that might be waiting to be
+                        ; processed (using a BIT reads the location without
+                        ; changing any CPU registers - it only affects the
+                        ; flags, which we can simply ignore)
+
+ LDA #%00000001         ; Set CIA1 register $0D to enable and disable interrupts
+ STA CIA+$D             ; as follows:
+                        ;
+                        ;   * Bit 0 set = configure interrupts generated by
+                        ;                 timer A underflow
+                        ;
+                        ;   * Bits 1-4 clear = do not change configuration of
+                        ;                      other interrupts
+                        ;
+                        ;   * Bit 7 clear = disable interrupts whose
+                        ;                   corresponding bits are set
+                        ;
+                        ; So this disables interrupts that are generated by
+                        ; timer A underflow, while leaving other interrupts as
+                        ; they are
+
+ LDX #0                 ; Set the raster count to 0 to initialise the raster
+ STX RASTCT             ; effects in the COMIRQ handler (such as the split
+                        ; screen)
+
+ INX                    ; Set bit 0 of VIC register $1A and clear bits 1-3 to
+ STX VIC+$1A            ; configure the following interrupts:
+                        ;
+                        ;   * Bit 0 = enable raster interrupt
+                        ;
+                        ;   * Bit 1 = disable sprite-background collision
+                        ;             interrupt
+                        ;
+                        ;   * Bit 2 = disable sprite-sprite collision interrupt
+                        ;
+                        ;   * Bit 3 = disable light pen interrupt
+
+ LDA VIC+$11            ; Clear bit 7 of VIC register $11, to clear the top bit
+ AND #%01111111         ; of the raster line that generates the interrupt (as
+ STA VIC+$11            ; the line number is a 9-bit value, with bits 0-7 in VIC
+                        ; register $12)
+
+ LDA #40                ; Set VIC register $11 to 40, so along with bit 7 of VIC
+ STA VIC+$12            ; register $10, this sets the raster interrupt to be
+                        ; generated when the raster reaches line 40
+
+ LDA #%100              ; Call SETL1 to set the 6510 input/output port to the
+ JSR SETL1              ; following:
+                        ;
+                        ;   * LORAM = 0
+                        ;   * HIRAM = 0
+                        ;   * CHAREN = 1
+                        ;
+                        ; This sets the entire 64K memory map to RAM
+                        ;
+                        ; See the memory map at the top of page 265 in the
+                        ; "Commodore 64 Programmer's Reference Guide", published
+                        ; by Commodore
+
+ CLI                    ; Enable interrupts again
+
+ JSR SWAPPZERO          ; The call to KERNALSETUP above swapped the contents of
+                        ; zero page with the page at $CE00, to ensure the Kernal
+                        ; routines ran with their copy of zero page rather than
+                        ; the game's zero page
+                        ;
+                        ; We are done using the Kernal functions, so now we swap
+                        ; them back so the Kernal's zero page is moved to $CE00
+                        ; again, ready for next time, and the game's zero page
+                        ; variables are once again set up, ready for the game
+                        ; code to use
+
+ PLP                    ; Retrieve the processor flags that we stashed after the
+                        ; call to KERNALOPEN and KERNALCLOSE above
+
+ CLI                    ; Enable interrupts to make sure the PHP doesn't disable
+                        ; interrupts (which it could feasibly do by restoring a
+                        ; set I flag)
+
+ BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
+                        ; indicates that a disk error occurred, so jump to
+                        ; tapeerror via deleteerror to print "DISK ERROR"
+
+ LDA #29                ; Print secondary text token 28 ("OK")
+ JSR DETOK3
+
+ JSR t                  ; Scan the keyboard until a key is pressed, returning
+                        ; the ASCII code in A and X
+
+ CLC                    ; Clear the C flag to indicate that nothing was loaded
+
+ RTS                    ; Return from the subroutine
+
+.deleteerror
+
+ JMP tapeerror          ; Jump to tapeerror to print "DISK ERROR" (this JMP
+                        ; enables us to use a branch instruction to jump to
+                        ; tapeerror)
+
+                        ; --- End of added code ------------------------------->
 
 ; ******************************************************************************
 ;
@@ -31737,6 +31957,12 @@ ENDIF
  BPL BEL1               ; Loop back to BEL1 to zero the next byte, until we have
                         ; zeroed them all
 
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+ DEC DISK               ; Enable disk by default
+
+                        ; --- End of added code ------------------------------->
+
  LDA XX21+SST*2-2       ; Set spasto(1 0) to the Coriolis space station entry
  STA spasto             ; from the ship blueprint lookup table at XX21 (so
  LDA XX21+SST*2-1       ; spasto(1 0) points to the Coriolis blueprint)
@@ -32904,6 +33130,31 @@ ENDIF
                         ;   4. Default JAMESON
                         ;   5. Exit
 
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+ LDA #27                ; Set A to 26 so we print secondary token 27 for tape
+
+ BIT DISK               ; If tape is configured, jump to save1
+ BPL save1
+
+ LDA #28                ; Set A to 26 so we print secondary token 28 for disk
+
+.save1
+
+ JSR DETOK3             ; Print second extended token 27 to present this option
+                        ; for tape:
+                        ;
+                        ;   5. Exit
+                        ;
+                        ; or print second extended token 28 to present these
+                        ; options for disk:
+                        ;
+                        ;   5. Catalogue disk
+                        ;   6. Delete file
+                        ;   7. Exit
+
+                        ; --- End of added code ------------------------------->
+
  JSR t                  ; Scan the keyboard until a key is pressed, returning
                         ; the ASCII code in A and X
 
@@ -32935,6 +33186,33 @@ ENDIF
                         ; subroutine using a tail call
 
 .feb13
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+ BIT DISK               ; If tape is configured, jump to save3 to exit as option
+ BPL save3              ; 5 has been chosen
+
+                        ; If we get here then disk is configured, so we need to
+                        ; process options 5 to 7
+
+ CMP #'5'               ; If option 5 has not been chosen, jump to save2 to keep
+ BNE save2              ; checking
+
+ JMP CatalogueDisk      ; Disk is configured and option 5 has been chosen, so
+                        ; jump to CatalogueDisk to catalogue the disk
+
+.save2
+
+ CMP #'6'               ; If option 6 has not been chosen, then disk is
+ BNE save3              ; configured and option 7 has been chosen, so jump to
+                        ; save3 to exit the menu
+
+ JMP DeleteFile         ; Disk is configured and option 6 has been chosen, so
+                        ; jump to DeleteFile to delete a file
+
+.save3
+
+                        ; --- End of added code ------------------------------->
 
  CLC                    ; Option 5 was chosen, so clear the C flag to indicate
                         ; that nothing was loaded
@@ -33309,6 +33587,13 @@ ENDIF
                         ; 8 for disk
 
  LDA #1                 ; Call the Kernal's SETLFS function to set the file
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.dmod1
+
+                        ; --- End of added code ------------------------------->
+
  LDY #0                 ; parameters as follows:
  JSR KERNALSETLFS       ;
                         ;   * A = logical number 1
@@ -33329,6 +33614,12 @@ ENDIF
                         ; first five characters of INWK contain a BBC Micro
                         ; pathname like ":0.E.", which we can ignore in the
                         ; Commodore 64 version
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.dmod2
+
+                        ; --- End of added code ------------------------------->
 
  LDA thislong           ; Call SETNAM to set the filename parameters as
  LDX #(INWK+5)          ; follows:
@@ -51865,6 +52156,25 @@ ELIF _GMA_RELEASE
  INCBIN "1-source-files/music/gma/C.THEME.bin"
 
 ENDIF
+
+; ******************************************************************************
+;
+;       Name: CatalogueDisk
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Display the disk catalogue
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.CatalogueDisk
+
+ CLC                    ; Clear the C flag to indicate that nothing was loaded
+
+ RTS                    ; Return from the subroutine
+
+                        ; --- End of added code ------------------------------->
 
 ; ******************************************************************************
 ;
