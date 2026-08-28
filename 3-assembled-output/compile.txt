@@ -2650,6 +2650,7 @@ Reload at &4000
 S.C.WORDS &700  &B00  &4000  &4000 
 Saving file '3-assembled-output/WORDS.bin'
 .FONT
+     0B00   00 00 00 ... INCBIN "1-source-files/fonts/C.FONT.bin"
 .IANTOK
 .TKN1
      0E00   57
@@ -44435,7 +44436,9 @@ Saving file '3-assembled-output/ELTJ.bin'
      B713   B5
 .musicstart
      B714   B5
+     B715   A7 26 26 ... INCBIN "1-source-files/music/gma/C.COMUDAT.bin"
 .THEME
+     C14C   A7 05 05 ... INCBIN "1-source-files/music/gma/C.THEME.bin"
 .F%
      CCBF
 ELITE K
@@ -44457,7 +44460,9 @@ NA2% = &2619
 .W%
      4000
 .LODATA
+     4000   4C 32 24 ... INCBIN "3-assembled-output/LODATA.bin"
 .SHIPS
+     5600   A5 D0 A3 ... INCBIN "3-assembled-output/SHIPS.bin"
      758D   1F
      758E   3F
      758F   58
@@ -45384,6 +45389,7 @@ NA2% = &2619
      7A78   A4
      7A79   F4
 .spritp
+     7A7A   00 00 00 ... INCBIN "3-assembled-output/SPRITE.bin"
      7C3A   38
      7C3B   35
      7C3C   25
@@ -45707,6 +45713,7 @@ NA2% = &2619
      7D79   B9
 .DIALS
      7D7A
+     7D92   02 02 02 ... INCBIN "1-source-files/images/C.CODIALS.bin"
      865A   F5
 .V%
      865B
@@ -45912,7 +45919,7 @@ V% = &865B
      12CD   AD 6C FE   LDA &FE6C
      12D0   49 20      EOR #&20
      12D2   8D 6C FE   STA &FE6C
-.L12D5
+.data1
      12D5   AD 6D FE   LDA &FE6D
      12D8   29 10      AND #&10
      12DA   F0 F9      BEQ &12D5

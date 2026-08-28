@@ -5,6 +5,8 @@
 ; Commodore 64 Elite was written by Ian Bell and David Braben and is copyright
 ; D. Braben and I. Bell 1985
 ;
+; The GMA85 and GMA86 loaders were written by Graeme Ashton
+;
 ; The code in this file has been reconstructed from a disassembly of the version
 ; released on Ian Bell's personal website at http://www.elitehomepage.org/
 ;
