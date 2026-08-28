@@ -17827,14 +17827,14 @@ ENDIF
 
  JSR KERNALOPEN         ; Open the file
 
- BCS skip1              ; If the open command returns an error then the C flag
+ BCS delt1              ; If the open command returns an error then the C flag
                         ; will be set, so skip the close command and move
                         ; straight on to the error reporting
 
  LDA #1                 ; Close the file (which KERNALSETUP set up as logical
  JSR KERNALCLOSE        ; file 1) to delete it
 
-.skip1
+.delt1
 
  PHP                    ; If something goes wrong with the deletion then the C
                         ; flag will be set, so save this on the stack so we can
@@ -17927,6 +17927,8 @@ ENDIF
  BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
                         ; indicates that a disk error occurred, so jump to
                         ; tapeerror via deleteerror to print "DISK ERROR"
+
+.delt2
 
  LDA #29                ; Print secondary text token 28 ("OK")
  JSR DETOK3
@@ -33247,10 +33249,29 @@ ENDIF
 
 .SV1
 
- JSR GTNMEW             ; If we get here then option 2 (save) was chosen, so
-                        ; call GTNMEW to fetch the name of the commander file
-                        ; to save (including drive number and directory) into
-                        ; INWK
+                        ; --- Mod: Code removed for improved disk menu: ------->
+
+;JSR GTNMEW             ; If we get here then option 2 (save) was chosen, so
+;                       ; call GTNMEW to fetch the name of the commander file
+;                       ; to save (including drive number and directory) into
+;                       ; INWK
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA #&60               ; Modify the DeleteFile routine so it returns before
+ STA delt2              ; printing the confirmation message
+                        ;
+                        ; This modifies the LDA #29 instruction at delt2 into an
+                        ; RTS instruction (opcode &60)
+
+ JSR DeleteFile         ; Delete the commander file if it exists, so we can
+                        ; overwrite it
+
+ LDA #&A9               ; Revert the modification to restore the DeleteFile
+ STA delt2              ; routine to its previous state, by restoring the LDA
+                        ; instruction (opcode &A9)
+
+                        ; --- End of replacement ------------------------------>
 
  JSR TRNME              ; Transfer the commander filename from INWK to NA%
 
