@@ -17786,15 +17786,11 @@ ENDIF
                         ; INWK
 
  LDA #&60               ; Modify the KERNALSETUP routine so it returns before
- STA dmod2              ; performing the KERNALSETNAM call at the end, so we can
-                        ; insert our own KERNALSETNAM instead
+ STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
+                        ; the end, so we can insert our own calls instead
                         ;
-                        ; This modifies the LDA thislong instruction at dmod2
-                        ; into an RTS instruction (opcode &60)
-
- LDA #15                ; Modify the SETLFS command in KERNALSETUP to secondary
- STA dmod1+1            ; address 15, so we can send a scratch command to the
-                        ; drive
+                        ; This modifies the LDA #1 instruction at dmod1 into an
+                        ; RTS instruction (opcode &60)
 
  JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
                         ; which includes swapping the contents of zero page with
@@ -17802,13 +17798,21 @@ ENDIF
                         ; page that works for them, and any changes they make do
                         ; not corrupt the game's zero page variables)
 
- LDA #&AD               ; Revert the modification to restore the KERNALSETUP
- STA dmod2              ; routine to its previous state, by restoring the LDA
-                        ; instruction (opcode &AD)
+ LDA #&A9               ; Revert the modification to restore the KERNALSETUP
+ STA dmod1              ; routine to its previous state, by restoring the LDA #1
+                        ; instruction at dmod1 (opcode &A9)
 
- LDA #0                 ; Revert the modification to restore the KERNALSETUP
- STA dmod1+1            ; routine to its previous state, by restoring SETLFS to
-                        ; secondary address 0
+ LDA #1                 ; Call the Kernal's SETLFS function to set the file
+ LDY #15                ; parameters as follows:
+ JSR KERNALSETLFS       ;
+                        ;   * A = logical number 1
+                        ;
+                        ;   * X = device number 1 (tape) or 8 (disk)
+                        ;
+                        ;   * Y = secondary address 15
+                        ;
+                        ; The last setting enables us to send commands to the
+                        ; disk drive via command channel 15
 
  LDA thislong           ; Set A to 3 + the length of the entered filename in
  CLC                    ; thislong so it includes the scratch command "S0:" at
@@ -17928,7 +17932,7 @@ ENDIF
                         ; indicates that a disk error occurred, so jump to
                         ; tapeerror via deleteerror to print "DISK ERROR"
 
-.delt2
+.dmod2
 
  LDA #29                ; Print secondary text token 28 ("OK")
  JSR DETOK3
@@ -33259,16 +33263,16 @@ ENDIF
                         ; --- And replaced by: -------------------------------->
 
  LDA #&60               ; Modify the DeleteFile routine so it returns before
- STA delt2              ; printing the confirmation message
+ STA dmod2              ; printing the confirmation message
                         ;
-                        ; This modifies the LDA #29 instruction at delt2 into an
+                        ; This modifies the LDA #29 instruction at dmod2 into an
                         ; RTS instruction (opcode &60)
 
  JSR DeleteFile         ; Delete the commander file if it exists, so we can
                         ; overwrite it
 
  LDA #&A9               ; Revert the modification to restore the DeleteFile
- STA delt2              ; routine to its previous state, by restoring the LDA
+ STA dmod2              ; routine to its previous state, by restoring the LDA
                         ; instruction (opcode &A9)
 
                         ; --- End of replacement ------------------------------>
@@ -33607,14 +33611,13 @@ ENDIF
  TAX                    ; the lookup tape at filesys, so X is now 1 for tape or
                         ; 8 for disk
 
- LDA #1                 ; Call the Kernal's SETLFS function to set the file
-
                         ; --- Mod: Code added for improved disk menu: --------->
 
 .dmod1
 
                         ; --- End of added code ------------------------------->
 
+ LDA #1                 ; Call the Kernal's SETLFS function to set the file
  LDY #0                 ; parameters as follows:
  JSR KERNALSETLFS       ;
                         ;   * A = logical number 1
@@ -33635,12 +33638,6 @@ ENDIF
                         ; first five characters of INWK contain a BBC Micro
                         ; pathname like ":0.E.", which we can ignore in the
                         ; Commodore 64 version
-
-                        ; --- Mod: Code added for improved disk menu: --------->
-
-.dmod2
-
-                        ; --- End of added code ------------------------------->
 
  LDA thislong           ; Call SETNAM to set the filename parameters as
  LDX #(INWK+5)          ; follows:
