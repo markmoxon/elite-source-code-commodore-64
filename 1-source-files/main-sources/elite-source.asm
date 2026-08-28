@@ -17928,11 +17928,11 @@ ENDIF
                         ; interrupts (which it could feasibly do by restoring a
                         ; set I flag)
 
+.dmod2
+
  BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
                         ; indicates that a disk error occurred, so jump to
                         ; tapeerror via deleteerror to print "DISK ERROR"
-
-.dmod2
 
  LDA #29                ; Print secondary text token 28 ("OK")
  JSR DETOK3
@@ -33263,17 +33263,18 @@ ENDIF
                         ; --- And replaced by: -------------------------------->
 
  LDA #&60               ; Modify the DeleteFile routine so it returns before
- STA dmod2              ; printing the confirmation message
+ STA dmod2              ; printing any output (i.e. errors or the confirmation
+                        ; message)
                         ;
-                        ; This modifies the LDA #29 instruction at dmod2 into an
-                        ; RTS instruction (opcode &60)
+                        ; This modifies the BCS deleteerror instruction at dmod2
+                        ; into an RTS instruction (opcode &60)
 
  JSR DeleteFile         ; Delete the commander file if it exists, so we can
                         ; overwrite it
 
- LDA #&A9               ; Revert the modification to restore the DeleteFile
- STA dmod2              ; routine to its previous state, by restoring the LDA
-                        ; instruction (opcode &A9)
+ LDA #&B0               ; Revert the modification to restore the DeleteFile
+ STA dmod2              ; routine to its previous state, by restoring the BCS
+                        ; instruction (opcode &B0)
 
                         ; --- End of replacement ------------------------------>
 
