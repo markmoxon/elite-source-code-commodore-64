@@ -17934,7 +17934,7 @@ ENDIF
                         ; indicates that a disk error occurred, so jump to
                         ; tapeerror via deleteerror to print "DISK ERROR"
 
- LDA #29                ; Print secondary text token 28 ("OK")
+ LDA #29                ; Print secondary text token 28 ("FILE DELETED")
  JSR DETOK3
 
  JSR t                  ; Scan the keyboard until a key is pressed, returning
