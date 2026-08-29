@@ -477,9 +477,21 @@ ENDIF
 
                         ; --- Mod: Code added for improved disk menu: --------->
 
+ KERNALREADST = $FFB7   ; The Kernal function to read input/output device status
+
  KERNALOPEN = $FFC0     ; The Kernal function to open file
 
  KERNALCLOSE = $FFC3    ; The Kernal function to close a file
+
+ KERNALCHKIN = $FFC6    ; The Kernal function to define the input device
+
+ KERNALCHKOUT = $FFC9   ; The Kernal function to define the output device
+
+ KERNALCLRCHN = $FFCC   ; The Kernal function to close input/output files
+
+ KERNALCHRIN = $FFCF    ; The Kernal function to read a character from input
+
+ KERNALCHROUT = $FFD2   ; The Kernal function to write a character to output
 
                         ; --- End of added code ------------------------------->
 
@@ -17789,8 +17801,8 @@ ENDIF
  STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
                         ; the end, so we can insert our own calls instead
                         ;
-                        ; This modifies the LDA #1 instruction at dmod1 into an
-                        ; RTS instruction (opcode &60)
+                        ; This modifies the LDX DISK instruction at dmod1 into
+                        ; an RTS instruction (opcode &60)
 
  JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
                         ; which includes swapping the contents of zero page with
@@ -17798,16 +17810,16 @@ ENDIF
                         ; page that works for them, and any changes they make do
                         ; not corrupt the game's zero page variables)
 
- LDA #&A9               ; Revert the modification to restore the KERNALSETUP
- STA dmod1              ; routine to its previous state, by restoring the LDA #1
-                        ; instruction at dmod1 (opcode &A9)
+ LDA #&AE               ; Revert the modification to restore the KERNALSETUP
+ STA dmod1              ; routine to its previous state, by restoring the LDX
+                        ; DISK instruction at dmod1 (opcode &AE)
 
  LDA #1                 ; Call the Kernal's SETLFS function to set the file
  LDY #15                ; parameters as follows:
- JSR KERNALSETLFS       ;
-                        ;   * A = logical number 1
+ LDX #8                 ;
+ JSR KERNALSETLFS       ;   * A = logical number 1
                         ;
-                        ;   * X = device number 1 (tape) or 8 (disk)
+                        ;   * X = device number 8 (disk)
                         ;
                         ;   * Y = secondary address 15
                         ;
@@ -17839,6 +17851,48 @@ ENDIF
  JSR KERNALCLOSE        ; file 1) to delete it
 
 .delt1
+
+ JSR TR1                ; Change INWK back to the last saved commander's name
+
+ JSR TidyUpAfterDisk    ; Restore the state of the system following the disk
+                        ; operation
+
+.dmod2
+
+ BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
+                        ; indicates that a disk error occurred, so jump to
+                        ; tapeerror via deleteerror to print "DISK ERROR"
+
+ LDA #29                ; Print secondary text token 28 ("FILE DELETED")
+ JSR DETOK3
+
+ JSR t                  ; Scan the keyboard until a key is pressed, returning
+                        ; the ASCII code in A and X
+
+ CLC                    ; Clear the C flag to indicate that nothing was loaded
+
+ RTS                    ; Return from the subroutine
+
+.deleteerror
+
+ JMP tapeerror          ; Jump to tapeerror to print "DISK ERROR" (this JMP
+                        ; enables us to use a branch instruction to jump to
+                        ; tapeerror)
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: TidyUpAfterDisk
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Restore the state of the system following a disk operation
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.TidyUpAfterDisk
 
  PHP                    ; If something goes wrong with the deletion then the C
                         ; flag will be set, so save this on the stack so we can
@@ -17928,27 +17982,7 @@ ENDIF
                         ; interrupts (which it could feasibly do by restoring a
                         ; set I flag)
 
-.dmod2
-
- BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
-                        ; indicates that a disk error occurred, so jump to
-                        ; tapeerror via deleteerror to print "DISK ERROR"
-
- LDA #29                ; Print secondary text token 28 ("FILE DELETED")
- JSR DETOK3
-
- JSR t                  ; Scan the keyboard until a key is pressed, returning
-                        ; the ASCII code in A and X
-
- CLC                    ; Clear the C flag to indicate that nothing was loaded
-
  RTS                    ; Return from the subroutine
-
-.deleteerror
-
- JMP tapeerror          ; Jump to tapeerror to print "DISK ERROR" (this JMP
-                        ; enables us to use a branch instruction to jump to
-                        ; tapeerror)
 
                         ; --- End of added code ------------------------------->
 
@@ -31967,6 +32001,8 @@ ENDIF
 
  DEC DISK               ; Enable disk by default
 
+ DEC PLTOG              ; Enable planetary details by default
+
                         ; --- End of added code ------------------------------->
 
  LDA XX21+SST*2-2       ; Set spasto(1 0) to the Coriolis space station entry
@@ -33603,6 +33639,12 @@ ENDIF
                         ;
                         ; This ensures that any file system errors are shown
 
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.dmod1
+
+                        ; --- End of added code ------------------------------->
+
  LDX DISK               ; Set X = DISK + 1
  INX                    ;
                         ; DISK is $FF (i.e. -1) for disk and 0 for tape, so this
@@ -33611,12 +33653,6 @@ ENDIF
  LDA filesys,X          ; Set X to the device number for the current media from
  TAX                    ; the lookup tape at filesys, so X is now 1 for tape or
                         ; 8 for disk
-
-                        ; --- Mod: Code added for improved disk menu: --------->
-
-.dmod1
-
-                        ; --- End of added code ------------------------------->
 
  LDA #1                 ; Call the Kernal's SETLFS function to set the file
  LDY #0                 ; parameters as follows:
@@ -52189,7 +52225,196 @@ ENDIF
 
 .CatalogueDisk
 
+ LDA #&60               ; Modify the KERNALSETUP routine so it returns before
+ STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
+                        ; the end, so we can insert our own calls instead
+                        ;
+                        ; This modifies the LDX DISK instruction at dmod1 into
+                        ; an RTS instruction (opcode &60)
+
+ JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
+                        ; which includes swapping the contents of zero page with
+                        ; the page at $CE00 (so the Kernal functions get a zero
+                        ; page that works for them, and any changes they make do
+                        ; not corrupt the game's zero page variables)
+
+ LDA #&AE               ; Revert the modification to restore the KERNALSETUP
+ STA dmod1              ; routine to its previous state, by restoring the LDX
+                        ; DISK instruction at dmod1 (opcode &AE)
+
+ LDA #2                 ; Call the Kernal's SETLFS function to set the file
+ LDY #2                 ; parameters as follows:
+ LDX #8                 ;
+ JSR KERNALSETLFS       ;   * A = logical number 2
+                        ;
+                        ;   * X = device number 8 (disk)
+                        ;
+                        ;   * Y = secondary address 2
+                        ;
+                        ; We can use this channel to read the catalogue from the
+                        ; drive, and because we are using a secondary address of
+                        ; 2, the catalogue will be read at the sector level (so
+                        ; we will be able to fetch the BAM and the chain of
+                        ; directory sectors)
+
+ LDA #1                 ; Call SETNAM to set the filename parameters as
+ LDX #LO(dollarName)    ; follows:
+ LDY #HI(dollarName)    ;
+ JSR KERNALSETNAM       ;   * A = filename length
+                        ;
+                        ;   * (Y X) = address of dollarName
+                        ;
+                        ; This tells the drive to read the disk catalogue from
+                        ; the drive, using "$" as the the filename
+
+ JSR KERNALOPEN         ; Open the disk catalogue in logical file 2
+
+ BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+
+ LDX #2                 ; Set the default input to logical file 2, so we can
+ JSR KERNALCHKIN        ; read the sector from the drive
+
+ JSR FetchSector        ; Fetch the first sector, which contains the BAM
+
+ BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+
+ LDA #1                 ; Hack to load sector 2
+ STA SC
+
+.fcat1
+
+ JSR FetchSector        ; Fetch the next sector
+
+ BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+
+ BNE fcat2              ; If A is non-zero then READST returned a status, so
+                        ; exit the loop
+
+ BEQ fcat1              ; Loop back to fetch the next sector (this BEQ is
+                        ; effectively a JMP as we know A is zero)
+
+.fcat2
+
+ AND #$40               ; If bit 6 of A is set then we have reached the end of
+ BNE fcat3              ; the file, so we have read the whole catalogue and can
+                        ; finish up by jumping to fcat3
+
+ BEQ fcat4              ; If we get here then there was a read error, so jump to
+                        ; fcat4 to process it (this BEQ is effectively a JMP as
+                        ; we know A is zero)
+
+.fcat3
+
+ LDA #2                 ; Close logical file number 2
+ JSR KERNALCLOSE
+
+ JSR KERNALCLRCHN       ; Clear all open channels and restore the I/O channels
+                        ; to their original default values
+
+ JSR TidyUpAfterDisk    ; Restore the state of the system following the disk
+                        ; operation
+
+ JSR t                  ; Scan the keyboard until a key is pressed, returning
+                        ; the ASCII code in A and X
+
  CLC                    ; Clear the C flag to indicate that nothing was loaded
+
+ RTS                    ; Return from the subroutine
+
+.fcat4
+
+ LDA #29                ; TEST: error message (remove for prod)
+ JSR DETOK3
+
+ JMP fcat3              ; Jump to fcat3 to revert the system following the disk
+                        ; operation and wait for a key press
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: dollarName
+;       Type: Variable
+;   Category: Save and load
+;    Summary: The filename for fetching the disk directory
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.dollarName
+
+ EQUS "$"
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: FetchSector
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Fetch the next sector of the disk catalogue
+;
+; ------------------------------------------------------------------------------
+;
+; Returns:
+;
+;   C flag              The error state of the read:
+;
+;                         * Clear = no read error
+;
+;                         * Set = read error (details in A)
+;
+;   A                   The return state of the read:
+;
+;                         * 0 = sector read successfully
+;
+;                         * Non-zero = READST returned a status:
+;
+;                           * Bit 6 set = end of file
+;
+;                           * Bit 6 clear = read error as per READST Kernal call
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.FetchSector
+
+ LDY #2                 ; We now read the sector into memory at TAP%, so set a
+                        ; byte counter in Y, starting it at 2 as the first two
+                        ; bytes of the sector (which contain the chain address)
+                        ; are not included in the file
+
+.fsec1
+
+ JSR KERNALREADST       ; Call READST to read the status word for the file
+
+ BNE fsec3              ; If A = 0 then this is either the end of the file or a
+                        ; read error, so jump to fsec3 to return this non-zero
+                        ; value in A
+
+ JSR KERNALCHRIN        ; Read the X-th byte from the sector
+
+ BCS fsec4              ; If there is an error, jump to fsec4 to return with the
+                        ; C flag set
+
+ STA TAP%,Y             ; Store it in the X-th byte of TAP%
+
+ INY                    ; Increment the byte counter
+
+ BNE fsec1              ; Look back until we have copied all 253 bytes
+
+.fsec2
+
+ LDA #0                 ; Set A = 0 to return from the subroutine to indicate no
+                        ; errors
+
+.fsec3
+
+ CLC                    ; Clear the C flag to indicate no errors
+
+.fsec4
 
  RTS                    ; Return from the subroutine
 
