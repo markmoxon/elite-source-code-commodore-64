@@ -2140,6 +2140,28 @@ ENDIF
                         ; The top bit for Trumble Y's x-coordinate is stored in
                         ; TRIBXH + Y*2, for Y = 0 to 5
 
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.filesPrinted
+
+ SKIP 1                 ; The number of files printed on the screen in the disk
+                        ; catalogue
+
+.diskEntry
+
+ SKIP 1                 ; The address of the current disk entry being printed in
+                        ; the disk catalogue
+
+.fromString
+
+ SKIP 1                 ; The start offset within TAP% of a string to be printed
+
+.toString
+
+ SKIP 1                 ; The end offset within TAP% of a string to be printed
+
+                        ; --- End of added code ------------------------------->
+
  PRINT "UP workspace from ", ~UP, "to ", ~P%-1, "inclusive"
 
 ; ******************************************************************************
@@ -6320,7 +6342,7 @@ ENDIF
 
                         ; --- And replaced by: -------------------------------->
 
- EQUS "  S0:"           ; The scratch command for deleting a commander file
+ EQUS "  S0:"           ; The scratch command for deleting a commander file;
                         ; this string is otherwise unused in this version of
                         ; Elite
 
@@ -17869,9 +17891,7 @@ ENDIF
  JSR t                  ; Scan the keyboard until a key is pressed, returning
                         ; the ASCII code in A and X
 
- CLC                    ; Clear the C flag to indicate that nothing was loaded
-
- RTS                    ; Return from the subroutine
+ JMP SVE                ; Jump to SVE to display the disk access menu
 
 .deleteerror
 
@@ -48455,13 +48475,17 @@ ENDIF
 
  RTS                    ; Return from the subroutine
 
- EQUD $F0E0C080         ; These bytes appear to be unused; they contain a copy
- EQUW $FCF8             ; of the TWFL variable, and the original source has a
- EQUB $FE               ; commented out label .TWFL
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- EQUD $1F3F7FFF         ; These bytes appear to be unused; they contain a copy
- EQUD $0103070F         ; of the TWFR variable, and the original source has a
-                        ; commented out label .TWFR
+;EQUD $F0E0C080         ; These bytes appear to be unused; they contain a copy
+;EQUW $FCF8             ; of the TWFL variable, and the original source has a
+;EQUB $FE               ; commented out label .TWFL
+;
+;EQUD $1F3F7FFF         ; These bytes appear to be unused; they contain a copy
+;EQUD $0103070F         ; of the TWFR variable, and the original source has a
+;                       ; commented out label .TWFR
+
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -50253,14 +50277,18 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.SETXC
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- STA XC                 ; Store the new text column in XC
+;.SETXC
+;
+;STA XC                 ; Store the new text column in XC
+;
+;;JMP PUTBACK           ; This instruction is commented out in the original
+;                       ; source
+;
+;RTS                    ; Return from the subroutine
 
-;JMP PUTBACK            ; This instruction is commented out in the original
-                        ; source
-
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -50277,14 +50305,18 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.SETYC
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
- STA YC                 ; Store the new text row in YC
+;.SETYC
+;
+;STA YC                 ; Store the new text row in YC
+;
+;;JMP PUTBACK           ; This instruction is commented out in the original
+;                       ; source
+;
+;RTS                    ; Return from the subroutine
 
-;JMP PUTBACK            ; This instruction is commented out in the original
-                        ; source
-
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -52223,7 +52255,15 @@ ENDIF
 
                         ; --- Mod: Code added for improved disk menu: --------->
 
+.dcat8S
+
+ JMP dcat8              ; Jump to dcat8 to process a read error
+
 .CatalogueDisk
+
+ LDA #8                 ; Clear the top part of the screen, draw a border box,
+ JSR TRADEMODE          ; and set up a trading screen with a view type in QQ11
+                        ; of 8 (Status Mode screen)
 
  LDA #&60               ; Modify the KERNALSETUP routine so it returns before
  STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
@@ -52241,6 +52281,31 @@ ENDIF
  LDA #&AE               ; Revert the modification to restore the KERNALSETUP
  STA dmod1              ; routine to its previous state, by restoring the LDX
                         ; DISK instruction at dmod1 (opcode &AE)
+
+ LDA #15                ; Call the Kernal's SETLFS function to set the file
+ LDY #15                ; parameters as follows:
+ LDX #8                 ;
+ JSR KERNALSETLFS       ;   * A = logical number 2
+                        ;
+                        ;   * X = device number 8 (disk)
+                        ;
+                        ;   * Y = secondary address 2
+                        ;
+                        ; This is the command channel
+
+ LDA #1                 ; Call SETNAM to set the filename parameters as
+ LDX #LO(initDisk)      ; follows:
+ LDY #HI(initDisk)      ;
+ JSR KERNALSETNAM       ;   * A = filename length
+                        ;
+                        ;   * (Y X) = address of initDisk
+                        ;
+                        ; This tells the drive to initialise the disk
+
+ JSR KERNALOPEN         ; Open the channel to send the command
+
+ LDA #15                ; Close the command channel
+ JSR KERNALCLOSE
 
  LDA #2                 ; Call the Kernal's SETLFS function to set the file
  LDY #2                 ; parameters as follows:
@@ -52269,41 +52334,124 @@ ENDIF
 
  JSR KERNALOPEN         ; Open the disk catalogue in logical file 2
 
- BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+ BCS dcat8S             ; If there was a read error, jump to dcat8 to process it
 
  LDX #2                 ; Set the default input to logical file 2, so we can
  JSR KERNALCHKIN        ; read the sector from the drive
 
  JSR FetchSector        ; Fetch the first sector, which contains the BAM
 
- BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+ BCS dcat8S             ; If there was a read error, jump to dcat8 to process it
 
- LDA #1                 ; Hack to load sector 2
- STA SC
+ LDX #&90               ; Print the 16-character disk title from offset &90
+ JSR PrintDiskString
 
-.fcat1
+ JSR TT67               ; Print two newlines
+ JSR TT67
 
- JSR FetchSector        ; Fetch the next sector
+ LDA #2                 ; Set A = 2 to set as the value for filesPrinted, so we
+                        ; count the title lines as files
 
- BCS fcat4              ; If there was a read error, jump to fcat4 to process it
+ EQUB $2C               ; Skip the next instruction by turning it into
+                        ; $2C $A9 $00, or BIT $07A9, which does nothing apart
+                        ; from affect the flags
 
- BNE fcat2              ; If A is non-zero then READST returned a status, so
+.dcat1
+
+                        ; We now print the disk catalogue by working through the
+                        ; directory sector chain
+
+ LDA #0                 ; Start counting the number of files printed so we know
+ STA filesPrinted       ; when to pause at the end of each page
+
+.dcat2
+
+ JSR FetchSector        ; Fetch the next sector in the directory chain
+
+ BCS dcat8              ; If there was a read error, jump to dcat8 to process it
+
+ BNE dcat6              ; If A is non-zero then READST returned a status, so
                         ; exit the loop
 
- BEQ fcat1              ; Loop back to fetch the next sector (this BEQ is
-                        ; effectively a JMP as we know A is zero)
+                        ; We have loaded the next sector in the directory chain,
+                        ; so we now work through the list of filenames and print
+                        ; them out
 
-.fcat2
+ LDX #5                 ; We have loaded the sector, so we now work through the
+ STX diskEntry          ; list of filenames, so set an offset in diskEntry,
+                        ; starting at offset 5, which points to the first
+                        ; filename in the sector
 
- AND #$40               ; If bit 6 of A is set then we have reached the end of
- BNE fcat3              ; the file, so we have read the whole catalogue and can
-                        ; finish up by jumping to fcat3
+.dcat3
 
- BEQ fcat4              ; If we get here then there was a read error, so jump to
-                        ; fcat4 to process it (this BEQ is effectively a JMP as
+ LDA TAP%-3,X           ; If the file type, track and sector are all zero then
+ ORA TAP%-2,X           ; have reached the end of the cataloogue, so jump to
+ ORA TAP%-1,X           ; dcat7 to finish up
+ BEQ dcat7
+
+ LDA TAP%-3,X           ; Set A to the file type
+
+ CMP #&81               ; If the file type is SEQ then we want to show it, so
+ BEQ dcat4              ; jump to dcat4 to print this file
+
+ CMP #&82               ; If the file type is not PRG then we don't want to show
+ BNE dcat5              ; it, so jump to dcat5 to to move on to the next file
+                        ; without printing this filename
+
+.dcat4
+
+\ PHA
+
+ JSR PrintDiskString     ; Print the filename title at offset X
+
+\ LDA #20                ; Move the text cursor to column 20
+\ JSR DOXC
+
+\ PLA
+\ JSR PrintFileType
+
+ JSR TT67               ; Print a newline
+
+ INC filesPrinted       ; Increment the number of filenames printed
+
+ LDA filesPrinted       ; If we haven't printed 20 filenames then jump to dcat5
+ CMP #20                ; to move on to the next file
+ BCC dcat5
+
+ JSR t                  ; We have reached the end of the page, so wait for a key
+                        ; to be pressed
+
+ JMP dcat1              ; Jump to dcat1 to display the next page
+
+.dcat5
+
+ LDA diskEntry          ; Add &20 to diskEntry to move the pointer to the next
+ CLC                    ; filename in the sector
+ ADC #&20
+ STA diskEntry
+
+ TAX                    ; Set X to the new pointer in case we loop back
+
+ BCC dcat3              ; If the above addition didn't overflow then we haven't
+                        ; reached the end of the sector, so jump back to dcat3
+                        ; to print the next filename at the offset in X
+
+ BCS dcat2              ; If the above addition did overflow then we have
+                        ; printed all the filenames from this sector, so loop
+                        ; back to dcat2 to fetch the next sector (this BCS is
+                        ; effectively a JMP as we just passed through a BCC)
+
+.dcat6
+
+ AND #%01000000         ; If bit 6 of A is set then we have reached the end of
+ BNE dcat7              ; the file, so we have read the whole catalogue and can
+                        ; finish up by jumping to dcat7
+
+ BEQ dcat8              ; If we get here then there was a read error, so jump to
+                        ; dcat8 to process it (this BEQ is effectively a JMP as
                         ; we know A is zero)
 
-.fcat3
+.dcat7
 
  LDA #2                 ; Close logical file number 2
  JSR KERNALCLOSE
@@ -52317,16 +52465,14 @@ ENDIF
  JSR t                  ; Scan the keyboard until a key is pressed, returning
                         ; the ASCII code in A and X
 
- CLC                    ; Clear the C flag to indicate that nothing was loaded
+ JMP SVE                ; Jump to SVE to display the disk access menu
 
- RTS                    ; Return from the subroutine
-
-.fcat4
+.dcat8
 
  LDA #29                ; TEST: error message (remove for prod)
  JSR DETOK3
 
- JMP fcat3              ; Jump to fcat3 to revert the system following the disk
+ JMP dcat7              ; Jump to dcat7 to revert the system following the disk
                         ; operation and wait for a key press
 
                         ; --- End of added code ------------------------------->
@@ -52345,6 +52491,23 @@ ENDIF
 .dollarName
 
  EQUS "$"
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: initialiseDisk
+;       Type: Variable
+;   Category: Save and load
+;    Summary: The command for initialising the disk
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.initDisk
+
+ EQUS "I"
 
                         ; --- End of added code ------------------------------->
 
@@ -52419,6 +52582,107 @@ ENDIF
  RTS                    ; Return from the subroutine
 
                         ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: PrintFileType
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Print a string from the disk catalogue
+;
+; ------------------------------------------------------------------------------
+;
+; Arguments:
+;
+;   A                   The file type
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.PrintFileType
+
+IF FALSE
+
+ CMP #&81               ; If the file type is SEQ, jump to type1
+ BEQ type1
+
+ LDA #'P'               ; Print "PRG" and return from the subroutine using a
+ JSR TT27               ; tail call
+ LDA #'R'
+ JSR TT27
+ LDA #'G'
+ JMP TT27
+
+.type1
+
+ LDA #'S'               ; Print "SEQ" and return from the subroutine using a
+ JSR TT27               ; tail call
+ LDA #'E'
+ JSR TT27
+ LDA #'Q'
+ JMP TT27
+
+ENDIF
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: PrintDiskString
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Print a 16-character string from the disk catalogue
+;
+; ------------------------------------------------------------------------------
+;
+; Arguments:
+;
+;   X                   The offset within TAP% of the string to print
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.PrintDiskString
+
+ STX fromString         ; Set fromString to the string offset
+
+ TXA                    ; Set toString = X + 16
+ CLC                    ;
+ ADC #16                ; The string is 16 characters long, so toString points
+ STA toString           ; to the end of the string we want to print
+
+.pstr1
+
+ LDA TAP%,X             ; Set A to the character to print
+
+ BEQ pstr4              ; If it is zero, jump to pstr4 to finish printing
+
+ CMP #$A0               ; If it is a padding character, jump to pstr4 to finish
+ BEQ pstr4              ; printing
+
+ AND #%01111111         ; Clear bit 7 to convert all letters to ASCII upper case
+
+ CMP #' '               ; If A is outside the ASCII range ' ' to 'z', jump to
+ BCC pstr3              ; psrt3 to skip printing this character
+ CMP #'z'+1
+ BCS pstr3
+
+ JSR TT26               ; Print the character in A
+
+.pstr3
+
+ INC fromString         ; Increment the pointer in fromString
+
+ LDX fromString         ; Set X to the updated pointer
+
+ CPX toString           ; Loop back until we have reached the end of the string
+ BCC pstr1              ; at pointer toString
+
+.pstr4
+
+ RTS                    ; Return from the subroutine
 
 ; ******************************************************************************
 ;
