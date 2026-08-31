@@ -52265,22 +52265,7 @@ ENDIF
  JSR TRADEMODE          ; and set up a trading screen with a view type in QQ11
                         ; of 8 (Status Mode screen)
 
- LDA #&60               ; Modify the KERNALSETUP routine so it returns before
- STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
-                        ; the end, so we can insert our own calls instead
-                        ;
-                        ; This modifies the LDX DISK instruction at dmod1 into
-                        ; an RTS instruction (opcode &60)
-
- JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
-                        ; which includes swapping the contents of zero page with
-                        ; the page at $CE00 (so the Kernal functions get a zero
-                        ; page that works for them, and any changes they make do
-                        ; not corrupt the game's zero page variables)
-
- LDA #&AE               ; Revert the modification to restore the KERNALSETUP
- STA dmod1              ; routine to its previous state, by restoring the LDX
-                        ; DISK instruction at dmod1 (opcode &AE)
+ JSR SetUpForDisk       ; Configure the state of the system for a disk operation
 
  LDA #15                ; Call the Kernal's SETLFS function to set the file
  LDY #15                ; parameters as follows:
@@ -52400,15 +52385,15 @@ ENDIF
 
 .dcat4
 
-\ PHA
+ PHA                    ; Store the file type on the stack
 
- JSR PrintDiskString     ; Print the filename title at offset X
+ JSR PrintDiskString    ; Print the filename at offset X
 
-\ LDA #20                ; Move the text cursor to column 20
-\ JSR DOXC
+ LDA #20                ; Move the text cursor to column 20
+ JSR DOXC
 
-\ PLA
-\ JSR PrintFileType
+ PLA                    ; Print the file type from the stack
+ JSR PrintFileType
 
  JSR TT67               ; Print a newline
 
@@ -52418,8 +52403,13 @@ ENDIF
  CMP #20                ; to move on to the next file
  BCC dcat5
 
+ JSR TidyUpAfterDisk    ; Restore the state of the system following the disk
+                        ; operation, so we can check for a key press
+
  JSR t                  ; We have reached the end of the page, so wait for a key
                         ; to be pressed
+
+ JSR SetUpForDisk       ; Configure the state of the system for a disk operation
 
  JMP dcat1              ; Jump to dcat1 to display the next page
 
@@ -52602,6 +52592,8 @@ ENDIF
 
 .PrintFileType
 
+ RTS
+
 IF FALSE
 
  CMP #&81               ; If the file type is SEQ, jump to type1
@@ -52681,6 +52673,39 @@ ENDIF
  BCC pstr1              ; at pointer toString
 
 .pstr4
+
+ RTS                    ; Return from the subroutine
+
+
+; ******************************************************************************
+;
+;       Name: SetUpForDisk
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Configure the state of the system for a disk operation
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.SetUpForDisk
+
+ LDA #&60               ; Modify the KERNALSETUP routine so it returns before
+ STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
+                        ; the end, so we can insert our own calls instead
+                        ;
+                        ; This modifies the LDX DISK instruction at dmod1 into
+                        ; an RTS instruction (opcode &60)
+
+ JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
+                        ; which includes swapping the contents of zero page with
+                        ; the page at $CE00 (so the Kernal functions get a zero
+                        ; page that works for them, and any changes they make do
+                        ; not corrupt the game's zero page variables)
+
+ LDA #&AE               ; Revert the modification to restore the KERNALSETUP
+ STA dmod1              ; routine to its previous state, by restoring the LDX
+                        ; DISK instruction at dmod1 (opcode &AE)
 
  RTS                    ; Return from the subroutine
 
