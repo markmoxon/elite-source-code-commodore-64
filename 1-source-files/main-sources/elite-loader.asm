@@ -1197,8 +1197,8 @@ ENDIF
 
  CLI                    ; Allow interrupts again
 
- LDX #9                 ; Set X = $16 so we copy 9 pages of data from DIALS
-                        ; into DSTORE%
+ LDX #9                 ; Set X = 9 so we copy 9 pages of data from DIALS into
+                        ; DSTORE%
 
  LDA #LO(DSTORE%)       ; Set ZP(1 0) = DSTORE%
  STA ZP
