@@ -355,16 +355,16 @@ ENDIF
  TKN1 = $0E00           ; The address of the extended token table, as set in
                         ; elite-data.asm
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
-\RUPLA = TKN1 + $C28    ; The address of the extended system description system
-\                       ; number table, as set in elite-data.asm
-\
-\RUGAL = TKN1 + $C42    ; The address of the extended system description galaxy
-\                       ; number table, as set in elite-data.asm
-\
-\RUTOK = TKN1 + $C5C    ; The address of the extended system description token
-\                       ; table, as set in elite-data.asm
+;RUPLA = TKN1 + $C28    ; The address of the extended system description system
+;                       ; number table, as set in elite-data.asm
+;
+;RUGAL = TKN1 + $C42    ; The address of the extended system description galaxy
+;                       ; number table, as set in elite-data.asm
+;
+;RUTOK = TKN1 + $C5C    ; The address of the extended system description token
+;                       ; table, as set in elite-data.asm
 
                         ; --- And replaced by: -------------------------------->
 
@@ -6332,13 +6332,13 @@ ENDIF
 
                         ; --- Mod: Code removed for improved disk menu: ------->
 
-\EQUS ":0.E."           ; The drive part of this string (the "0") is updated
-\                       ; with the chosen drive in the GTNMEW routine, but the
-\                       ; directory part (the "E") is fixed. The variable is
-\                       ; followed directly by the commander file at NA%, which
-\                       ; starts with the commander name, so the full string at
-\                       ; NA%-5 is in the format ":0.E.jameson", which gives the
-\                       ; full filename of the commander file
+;EQUS ":0.E."           ; The drive part of this string (the "0") is updated
+;                       ; with the chosen drive in the GTNMEW routine, but the
+;                       ; directory part (the "E") is fixed. The variable is
+;                       ; followed directly by the commander file at NA%, which
+;                       ; starts with the commander name, so the full string at
+;                       ; NA%-5 is in the format ":0.E.jameson", which gives the
+;                       ; full filename of the commander file
 
                         ; --- And replaced by: -------------------------------->
 
@@ -6920,7 +6920,7 @@ ENDIF
 
  NEXT
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
 ;EQUD $10204080         ; These bytes appear to be unused; they contain a copy
 ;EQUD $01020408         ; of the TWOS variable, and the original source has a
@@ -15528,7 +15528,7 @@ ENDIF
 ;
 ; ******************************************************************************
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
 ;.MUT3
 ;
@@ -28110,7 +28110,7 @@ ENDIF
 
 .CIRCLE2
 
-                        \ --- Mod: Code added for flicker-free planets: ------->
+                        ; --- Mod: Code added for flicker-free planets: ------->
 
                         ; We now set things up for flicker-free circle plotting,
                         ; by setting the following:
@@ -28131,7 +28131,7 @@ ENDIF
  LDX #1                 ; Set LSP = 1 to reset the ball line heap pointer
  STX LSP
 
-                        \ --- End of added code ------------------------------->
+                        ; --- End of added code ------------------------------->
 
  LDX #$FF               ; Set FLAG = $FF to reset the ball line heap in the call
  STX FLAG               ; to the BLINE routine below
@@ -48462,7 +48462,7 @@ ENDIF
 
  RTS                    ; Return from the subroutine
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
 ;EQUD $F0E0C080         ; These bytes appear to be unused; they contain a copy
 ;EQUW $FCF8             ; of the TWFL variable, and the original source has a
@@ -50264,7 +50264,7 @@ ENDIF
 ;
 ; ******************************************************************************
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
 ;.SETXC
 ;
@@ -50292,7 +50292,7 @@ ENDIF
 ;
 ; ******************************************************************************
 
-                        ; --- Mod: Code removed for improved disk menu: ------->
+                        ; --- Mod: Code removed for Compendium: --------------->
 
 ;.SETYC
 ;
