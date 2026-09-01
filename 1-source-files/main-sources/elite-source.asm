@@ -43248,8 +43248,12 @@ ENDIF
                         ;
                         ; nosev_y = nosev_y - alpha * nosev_x_hi
 
- STX P                  ; This instruction has no effect as MAD overwrites P,
-                        ; but it sets P = nosev_y_lo
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;STX P                  ; This instruction has no effect as MAD overwrites P,
+;                       ; but it sets P = nosev_y_lo
+
+                        ; --- End of removed code ----------------------------->
 
  LDX INWK,Y             ; Set (S R) = nosev_x
  STX R
@@ -43265,8 +43269,12 @@ ENDIF
                         ;
                         ; nosev_x = nosev_x + alpha * nosev_y_hi
 
- STX P                  ; This instruction has no effect as MAD overwrites P,
-                        ; but it sets P = nosev_x_lo
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;STX P                  ; This instruction has no effect as MAD overwrites P,
+;                       ; but it sets P = nosev_x_lo
+
+                        ; --- End of removed code ----------------------------->
 
  LDA BETA               ; Set Q = beta (the pitch angle to rotate through)
  STA Q
@@ -43277,8 +43285,12 @@ ENDIF
  STX S
  LDX INWK+4,Y
 
- STX P                  ; This instruction has no effect as MAD overwrites P,
-                        ; but it sets P = nosev_y
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;STX P                  ; This instruction has no effect as MAD overwrites P,
+;                       ; but it sets P = nosev_y
+
+                        ; --- End of removed code ----------------------------->
 
  LDA INWK+5,Y           ; Set A = -nosev_z_hi
  EOR #%10000000
@@ -43290,8 +43302,12 @@ ENDIF
                         ;
                         ; nosev_y = nosev_y - beta * nosev_z_hi
 
- STX P                  ; This instruction has no effect as MAD overwrites P,
-                        ; but it sets P = nosev_y_lo
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;STX P                  ; This instruction has no effect as MAD overwrites P,
+;                       ; but it sets P = nosev_y_lo
+
+                        ; --- End of removed code ----------------------------->
 
  LDX INWK+4,Y           ; Set (S R) = nosev_z
  STX R
