@@ -2340,9 +2340,22 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.MOS
+                        ; --- Mod: Code removed for volume control: ----------->
 
- SKIP 1                 ; This variable appears to be unused
+;.MOS
+;
+;SKIP 1                 ; This variable appears to be unused
+
+                        ; --- And replaced by: -------------------------------->
+
+.VOL
+
+ EQUB 15                \ The volume level for the game's sound effects (0-15)
+                        \
+                        \ This is controlled by the "<" and ">" keys while the
+                        \ game is paused, and the default level is 15
+
+                        ; --- End of replacement ------------------------------>
 
 .COMC
 
@@ -36243,6 +36256,89 @@ ENDIF
 
 .DK6
 
+                        ; --- Mod: Code added for volume control: ------------->
+
+ LDY VOL                ; Fetch the current volume setting into Y
+
+ CPX #$14               ; If "." is being pressed (i.e. the ">" key) then jump
+ BEQ DOVOL1             ; to DOVOL1 to increase the volume
+
+ CPX #$11               ; If "," is not being pressed (i.e. the "<" key) then
+ BNE DOVOL3             ; jump to DOVOL4 to skip the following
+
+ DEY                    ; The volume down key is being pressed, so decrement the
+                        ; volume level in Y
+
+ EQUB &24               ; Skip the next instruction by turning it into &24 &C8,
+                        ; or BIT &00C8, which does nothing apart from affect the
+                        ; flags
+
+.DOVOL1
+
+ INY                    ; The volume up key is being pressed, so increment the
+                        ; volume level in Y
+
+ TYA                    ; Copy the new volume level to A
+
+ AND #%11110000         ; If any of bits 4-7 are set, skip to DOVOL3 as we have
+ BNE DOVOL3             ; either increased the volume past the maximum volume of
+                        ; 15, or we have decreased it below 0 to -1, and in
+                        ; neither case do we want to change the volume as we are
+                        ; already at the maximum or minimum level
+
+ STY VOL                ; Store the new volume level in VOL
+
+ LDA #%101              ; Call SETL1 to set the 6510 input/output port to the
+ JSR SETL1              ; following:
+                        ;
+                        ;   * LORAM = 1
+                        ;   * HIRAM = 0
+                        ;   * CHAREN = 1
+                        ;
+                        ; This sets the entire 64K memory map to RAM except for
+                        ; the I/O memory map at $D000-$DFFF, which gets mapped
+                        ; to registers in the VIC-II video controller chip, the
+                        ; SID sound chip, the two CIA I/O chips, and so on
+                        ;
+                        ; See the memory map at the top of page 264 in the
+                        ; "Commodore 64 Programmer's Reference Guide", published
+                        ; by Commodore
+
+ STY SID+$18            ; Set SID register $18 to control the sound as follows:
+                        ;
+                        ;   * Bits 0-3: set the volume to the new level in Y
+                        ;
+                        ;   * Bit 4 clear: disable the low-pass filter
+                        ;
+                        ;   * Bit 5 clear: disable the bandpass filter
+                        ;
+                        ;   * Bit 6 clear: disable the high-pass filter
+                        ;
+                        ;   * Bit 7 clear: enable voice 3
+
+ LDA #%100              ; Call SETL1 to set the 6510 input/output port to the
+ JSR SETL1              ; following:
+                        ;
+                        ;   * LORAM = 0
+                        ;   * HIRAM = 0
+                        ;   * CHAREN = 1
+                        ;
+                        ; This sets the entire 64K memory map to RAM
+                        ;
+                        ; See the memory map at the top of page 265 in the
+                        ; "Commodore 64 Programmer's Reference Guide", published
+                        ; by Commodore
+
+ JSR BEEP               ; Call the BEEP subroutine to make a short, high beep at
+                        ; the new volume level
+
+ LDY #10                ; Wait for 10/50 of a second (0.2 seconds)
+ JSR DELAY
+
+.DOVOL3
+
+                        ; --- End of added code ------------------------------->
+
  LDY #0                 ; We now want to loop through the keys that toggle
                         ; various settings, so set a counter in Y to work our
                         ; way through them
@@ -37407,9 +37503,25 @@ ENDIF
  BPL coffeeloop         ; Loop back until we have zeroed all SID registers from
                         ; $18 down to $00
 
- LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+                        ; --- Mod: Code removed for volume control: ----------->
+
+;LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+;STA SID+$18            ;
+;                       ;   * Bits 0-3: set the volume to 15 (maximum)
+;                       ;
+;                       ;   * Bit 4 clear: disable the low-pass filter
+;                       ;
+;                       ;   * Bit 5 clear: disable the bandpass filter
+;                       ;
+;                       ;   * Bit 6 clear: disable the high-pass filter
+;                       ;
+;                       ;   * Bit 7 clear: enable voice 3
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA VOL                ; Set SID register $18 to control the sound as follows:
  STA SID+$18            ;
-                        ;   * Bits 0-3: set the volume to 15 (maximum)
+                        ;   * Bits 0-3: set the volume to VOL (1 to 15)
                         ;
                         ;   * Bit 4 clear: disable the low-pass filter
                         ;
@@ -37418,6 +37530,8 @@ ENDIF
                         ;   * Bit 6 clear: disable the high-pass filter
                         ;
                         ;   * Bit 7 clear: enable voice 3
+
+                        ; --- End of replacement ------------------------------>
 
  CLI                    ; Enable interrupts again
 
@@ -46436,9 +46550,25 @@ ENDIF
 ;LDA #2                 ; These instructions are commented out in the original
 ;STA VIC+$20            ; source
 
- LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+                        ; --- Mod: Code removed for volume control: ----------->
+
+;LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+;STA SID+$18            ;
+;                       ;   * Bits 0-3: set the volume to 15 (maximum)
+;                       ;
+;                       ;   * Bit 4 clear: disable the low-pass filter
+;                       ;
+;                       ;   * Bit 5 clear: disable the bandpass filter
+;                       ;
+;                       ;   * Bit 6 clear: disable the high-pass filter
+;                       ;
+;                       ;   * Bit 7 clear: enable voice 3
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA VOL                ; Set SID register $18 to control the sound as follows:
  STA SID+$18            ;
-                        ;   * Bits 0-3: set the volume to 15 (maximum)
+                        ;   * Bits 0-3: set the volume to VOL (1 to 15)
                         ;
                         ;   * Bit 4 clear: disable the low-pass filter
                         ;
@@ -46447,6 +46577,8 @@ ENDIF
                         ;   * Bit 6 clear: disable the high-pass filter
                         ;
                         ;   * Bit 7 clear: enable voice 3
+
+                        ; --- End of replacement ------------------------------>
 
  LDX #0                 ; Set the raster count to 0 to initialise the raster
  STX RASTCT             ; effects in the COMIRQ handler (such as the split
@@ -51665,6 +51797,20 @@ ENDIF
  JSR BDlab19            ; Increment the music data pointer in BDdataptr1(1 0)
                         ; and fetch the next music data byte into A
 
+                        ; --- Mod: Code added for volume control: ------------->
+
+ STA S%-1               ; Reduce the volume in bits 0-3 to a maximum of VOL
+ LDA VOL                ;
+ ORA #%11110000         ; We need to use a temporary location for the logic that
+ AND S%-1               ; we know won't be used elsewhere, because we get here
+                        ; via the interrupt routine and don't know what state we
+                        ; were in before the interrupt
+                        ;
+                        ; The checksum at S%-1 will do nicely as this location
+                        ; is not used in this version of Elite
+
+                        ; --- End of added code ------------------------------->
+
  STA SID+$18            ; Set SID register $18 to the music data byte we just
                         ; fetched, which sets the volume and filter modes as
                         ; follows:
@@ -52106,9 +52252,25 @@ ENDIF
                         ; so BDdataptr3(1 0) is the address of the music to play
                         ; (as BDdataptr4 = BDdataptr3 + 1)
 
- LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+                        ; --- Mod: Code removed for volume control: ----------->
+
+;LDA #%00001111         ; Set SID register $18 to control the sound as follows:
+;STA SID+$18            ;
+;                       ;   * Bits 0-3: set the volume to 15 (maximum)
+;                       ;
+;                       ;   * Bit 4 clear: disable the low-pass filter
+;                       ;
+;                       ;   * Bit 5 clear: disable the bandpass filter
+;                       ;
+;                       ;   * Bit 6 clear: disable the high-pass filter
+;                       ;
+;                       ;   * Bit 7 clear: enable voice 3
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA VOL                ; Set SID register $18 to control the sound as follows:
  STA SID+$18            ;
-                        ;   * Bits 0-3: set the volume to 15 (maximum)
+                        ;   * Bits 0-3: set the volume to VOL (1 to 15)
                         ;
                         ;   * Bit 4 clear: disable the low-pass filter
                         ;
@@ -52117,6 +52279,8 @@ ENDIF
                         ;   * Bit 6 clear: disable the high-pass filter
                         ;
                         ;   * Bit 7 clear: enable voice 3
+
+                        ; --- End of replacement ------------------------------>
 
 ;SEI                    ; This instruction is commented out in the original
                         ; source
