@@ -2977,16 +2977,20 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.BRKBK
+                        ; --- Mod: Code removed for Compendium: --------------->
 
- LDA #LO(BRBR)          ; Set BRKV to point to the BRBR routine, disabling
- SEI                    ; interrupts while we make the change and re-enabling
- STA BRKV               ; them once we are done
- LDA #HI(BRBR)
- STA BRKV+1
- CLI
+;.BRKBK
+;
+;LDA #LO(BRBR)          ; Set BRKV to point to the BRBR routine, disabling
+;SEI                    ; interrupts while we make the change and re-enabling
+;STA BRKV               ; them once we are done
+;LDA #HI(BRBR)
+;STA BRKV+1
+;CLI
+;
+;RTS                    ; Return from the subroutine
 
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -4860,9 +4864,18 @@ ENDIF
  JSR m                  ; Call m to calculate the maximum distance to the
                         ; planet in any of the three axes, returned in A
 
- BNE MA23               ; If A > 0 then we are a fair distance away from the
-                        ; planet in at least one axis, so jump to MA23 to skip
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;BNE MA23               ; If A > 0 then we are a fair distance away from the
+;                       ; planet in at least one axis, so jump to MA23 to skip
+;                       ; the rest of the altitude check
+
+                        ; --- And replaced by: -------------------------------->
+
+ BEQ P%+5               ; If A > 0 then we are a fair distance away from the
+ JMP MA23               ; planet in at least one axis, so jump to MA23 to skip
                         ; the rest of the altitude check
+                        ; --- End of replacement ------------------------------>
 
  JSR MAS3               ; Set A = x_hi^2 + y_hi^2 + z_hi^2, so using Pythagoras
                         ; we now know that A now contains the square of the
@@ -18042,6 +18055,38 @@ ENDIF
  RTS                    ; Return from the subroutine
 
                         ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: SetUpForDisk
+;       Type: Subroutine
+;   Category: Save and load
+;    Summary: Configure the state of the system for a disk operation
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for improved disk menu: --------->
+
+.SetUpForDisk
+
+ LDA #&60               ; Modify the KERNALSETUP routine so it returns before
+ STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
+                        ; the end, so we can insert our own calls instead
+                        ;
+                        ; This modifies the LDX DISK instruction at dmod1 into
+                        ; an RTS instruction (opcode &60)
+
+ JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
+                        ; which includes swapping the contents of zero page with
+                        ; the page at $CE00 (so the Kernal functions get a zero
+                        ; page that works for them, and any changes they make do
+                        ; not corrupt the game's zero page variables)
+
+ LDA #&AE               ; Revert the modification to restore the KERNALSETUP
+ STA dmod1              ; routine to its previous state, by restoring the LDX
+                        ; DISK instruction at dmod1 (opcode &AE)
+
+ RTS                    ; Return from the subroutine
 
 ; ******************************************************************************
 ;
@@ -52699,38 +52744,6 @@ ENDIF
  BCC pstr1              ; at pointer toString
 
 .pstr4
-
- RTS                    ; Return from the subroutine
-
-; ******************************************************************************
-;
-;       Name: SetUpForDisk
-;       Type: Subroutine
-;   Category: Save and load
-;    Summary: Configure the state of the system for a disk operation
-;
-; ******************************************************************************
-
-                        ; --- Mod: Code added for improved disk menu: --------->
-
-.SetUpForDisk
-
- LDA #&60               ; Modify the KERNALSETUP routine so it returns before
- STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
-                        ; the end, so we can insert our own calls instead
-                        ;
-                        ; This modifies the LDX DISK instruction at dmod1 into
-                        ; an RTS instruction (opcode &60)
-
- JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
-                        ; which includes swapping the contents of zero page with
-                        ; the page at $CE00 (so the Kernal functions get a zero
-                        ; page that works for them, and any changes they make do
-                        ; not corrupt the game's zero page variables)
-
- LDA #&AE               ; Revert the modification to restore the KERNALSETUP
- STA dmod1              ; routine to its previous state, by restoring the LDX
-                        ; DISK instruction at dmod1 (opcode &AE)
 
  RTS                    ; Return from the subroutine
 
