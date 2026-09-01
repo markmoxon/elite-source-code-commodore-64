@@ -5050,10 +5050,30 @@ ENDIF
  BEQ MA23               ; skip fuel scooping, as we can't scoop without fuel
                         ; scoops
 
+                        ; --- Mod: Code removed for moving fuel scoops: ------->
+
+;LDA DELT4+1            ; We are now successfully fuel scooping, so it's time
+;LSR A                  ; to work out how much fuel we're scooping. Fetch the
+;                       ; high byte of DELT4, which contains our current speed
+;                       ; divided by 4, and halve it to get our current speed
+;                       ; divided by 8 (so it's now a value between 1 and 5, as
+;                       ; our speed is normally between 1 and 40). This gives
+;                       ; us the amount of fuel that's being scooped in A, so
+;                       ; the faster we go, the more fuel we scoop, and because
+;                       ; the fuel levels are stored as 10 * the fuel in light
+;                       ; years, that means we just scooped between 0.1 and 0.5
+;                       ; light years of free fuel
+
+                        ; --- And replaced by: -------------------------------->
+
  LDA DELT4+1            ; We are now successfully fuel scooping, so it's time
- LSR A                  ; to work out how much fuel we're scooping. Fetch the
+ BEQ MA23               ; to work out how much fuel we're scooping. Fetch the
                         ; high byte of DELT4, which contains our current speed
-                        ; divided by 4, and halve it to get our current speed
+                        ; divided by 4, and if it is zero, jump to BA23 to skip
+                        ; skip fuel scooping, as we can't scoop fuel if we are
+                        ; not moving
+
+ LSR A                  ; If we are moving, halve A to get our current speed
                         ; divided by 8 (so it's now a value between 1 and 5, as
                         ; our speed is normally between 1 and 40). This gives
                         ; us the amount of fuel that's being scooped in A, so
@@ -5061,6 +5081,8 @@ ENDIF
                         ; the fuel levels are stored as 10 * the fuel in light
                         ; years, that means we just scooped between 0.1 and 0.5
                         ; light years of free fuel
+
+                        ; --- End of replacement ------------------------------>
 
  ADC QQ14               ; Set A = A + the current fuel level * 10 (from QQ14)
 
