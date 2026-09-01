@@ -35701,19 +35701,23 @@ ENDIF
 ;
 ; ******************************************************************************
 
-.DKS2
+                        ; --- Mod: Code removed for Compendium: --------------->
 
- LDA KTRAN+7,X          ; Fetch either the joystick X value or joystick Y value
-                        ; from the key logger buffer, depending on the value of
-                        ; X (i.e. fetch either KTRAN+8 or KTRAN+0)
+;.DKS2
+;
+;LDA KTRAN+7,X          ; Fetch either the joystick X value or joystick Y value
+;                       ; from the key logger buffer, depending on the value of
+;                       ; X (i.e. fetch either KTRAN+8 or KTRAN+0)
+;
+;EOR JSTE               ; The high byte A is now EOR'd with the value in
+;                       ; location JSTE, which contains $FF if both joystick
+;                       ; channels are reversed and 0 otherwise (so A now
+;                       ; contains the high byte but inverted, if that's what
+;                       ; the current settings say)
+;
+;RTS                    ; Return from the subroutine
 
- EOR JSTE               ; The high byte A is now EOR'd with the value in
-                        ; location JSTE, which contains $FF if both joystick
-                        ; channels are reversed and 0 otherwise (so A now
-                        ; contains the high byte but inverted, if that's what
-                        ; the current settings say)
-
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -43640,56 +43644,60 @@ ENDIF
 ; ------------------------------------------------------------------------------
 ;
 ; This routine is not used in this version of Elite. It is left over from the
-; 650s Second Processor version.
+; 6502 Second Processor version.
 ;
 ; ******************************************************************************
 
-.Checksum
+                        ; --- Mod: Code removed for Compendium: --------------->
 
- SEC                    ; Set the C flag, so it gets included in the checksum
+;.Checksum
+;
+;SEC                    ; Set the C flag, so it gets included in the checksum
+;
+;LDY #0                 ; Set Y = 0, to act as a byte counter
+;
+;STY V                  ; Set V = 0
+;
+;LDX #$10               ; Set X = $10, so we start with (X Y) = $1000
+;
+;LDA (SC),Y             ; This has no effect, as A is overwritten by the next
+;                       ; instruction
+;
+;TXA                    ; Set A = $10
+;
+;.CHKLoop
+;
+;STX V+1                ; Set V(1 0) = (X 0)
+;
+;STY T                  ; Set T = Y
+;
+;ADC (V),Y              ; Set A = A + C + contents of (V(1 0) + Y)
+;                       ;       = A + C + contents of ((X 0) + Y)
+;                       ;       = A + C + contents of (X Y)
+;
+;EOR T                  ; Set A = A EOR Y
+;
+;SBC V+1                ; Set A = A - (1 - C) - X
+;
+;DEY                    ; Decrement the loop counter to process the next byte
+;
+;BNE CHKLoop            ; Loop back until we have done the whole page
+;
+;INX                    ; Increment the page counter to point to the next page
+;
+;CPX #$A0               ; Loop back to do the next page until X = $A0, when
+;BCC CHKLoop            ; (X Y) = $A000
+;
+;CMP S%-1               ; Compare the calculated checksum in A with the checksum
+;                       ; stored in S%-1
+;
+;BNE Checksum           ; If the checksum we just calculated does not match
+;                       ; the value in location S%-1, jump to Checksum to enter
+;                       ; an infinite loop, which crashes the game
+;
+;RTS                    ; Return from the subroutine
 
- LDY #0                 ; Set Y = 0, to act as a byte counter
-
- STY V                  ; Set V = 0
-
- LDX #$10               ; Set X = $10, so we start with (X Y) = $1000
-
- LDA (SC),Y             ; This has no effect, as A is overwritten by the next
-                        ; instruction
-
- TXA                    ; Set A = $10
-
-.CHKLoop
-
- STX V+1                ; Set V(1 0) = (X 0)
-
- STY T                  ; Set T = Y
-
- ADC (V),Y              ; Set A = A + C + contents of (V(1 0) + Y)
-                        ;       = A + C + contents of ((X 0) + Y)
-                        ;       = A + C + contents of (X Y)
-
- EOR T                  ; Set A = A EOR Y
-
- SBC V+1                ; Set A = A - (1 - C) - X
-
- DEY                    ; Decrement the loop counter to process the next byte
-
- BNE CHKLoop            ; Loop back until we have done the whole page
-
- INX                    ; Increment the page counter to point to the next page
-
- CPX #$A0               ; Loop back to do the next page until X = $A0, when
- BCC CHKLoop            ; (X Y) = $A000
-
- CMP S%-1               ; Compare the calculated checksum in A with the checksum
-                        ; stored in S%-1
-
- BNE Checksum           ; If the checksum we just calculated does not match
-                        ; the value in location S%-1, jump to Checksum to enter
-                        ; an infinite loop, which crashes the game
-
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -47059,8 +47067,12 @@ ENDIF
                         ;
                         ;   Q2 = |delta_y| / |delta_x|
 
- CLC                    ; This instruction has no effect as the value of the C
-                        ; flag is overridden by the CPY in the following
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;CLC                    ; This instruction has no effect as the value of the C
+;                       ; flag is overridden by the CPY in the following
+
+                        ; --- End of removed code ----------------------------->
 
  LDY Y1                 ; If Y2 < Y1 then skip the following instruction
  CPY Y2
@@ -48932,53 +48944,57 @@ ENDIF
 ; ------------------------------------------------------------------------------
 ;
 ; This routine is not used in this version of Elite. It is left over from the
-; 650s Second Processor version.
+; 6502 Second Processor version.
 ;
 ; ******************************************************************************
 
-.newosrdch
+                        ; --- Mod: Code removed for Compendium: --------------->
 
- JSR $FFFF              ; This address is overwritten by the STARTUP routine to
-                        ; contain the original value of RDCHV, so this call acts
-                        ; just like a standard JSR OSRDCH call, and reads a
-                        ; character from the current input stream and stores it
-                        ; in A
+;.newosrdch
+;
+;JSR $FFFF              ; This address is overwritten by the STARTUP routine to
+;                       ; contain the original value of RDCHV, so this call acts
+;                       ; just like a standard JSR OSRDCH call, and reads a
+;                       ; character from the current input stream and stores it
+;                       ; in A
+;
+;CMP #128               ; If A < 128 then skip the following three instructions,
+;BCC P%+6               ; otherwise the character is invalid, so fall through
+;                       ; into badkey to deal with it
+;
+;.badkey
+;
+;                       ; If we get here then the character we read is invalid,
+;                       ; so we return a beep character
+;
+;LDA #7                 ; Set A to the beep character
+;
+;CLC                    ; Clear the C flag
+;
+;RTS                    ; Return from the subroutine
+;
+;                       ; If we get here then A < 128
+;
+;CMP #' '               ; If A >= ASCII " " then this is a valid alphanumerical
+;BCS coolkey            ; key press (as A is in the range 32 to 127), so jump
+;                       ; down to coolkey to return this key press
+;
+;CMP #13                ; If A = 13 then this is the return character, so jump
+;BEQ coolkey            ; down to coolkey to return this key press
+;
+;CMP #21                ; If A <> 21 jump up to badkey
+;BNE badkey
+;
+;.coolkey
+;
+;                       ; If we get here then the character we read is valid, so
+;                       ; return it
+;
+;CLC                    ; Clear the C flag
+;
+;RTS                    ; Return from the subroutine
 
- CMP #128               ; If A < 128 then skip the following three instructions,
- BCC P%+6               ; otherwise the character is invalid, so fall through
-                        ; into badkey to deal with it
-
-.badkey
-
-                        ; If we get here then the character we read is invalid,
-                        ; so we return a beep character
-
- LDA #7                 ; Set A to the beep character
-
- CLC                    ; Clear the C flag
-
- RTS                    ; Return from the subroutine
-
-                        ; If we get here then A < 128
-
- CMP #' '               ; If A >= ASCII " " then this is a valid alphanumerical
- BCS coolkey            ; key press (as A is in the range 32 to 127), so jump
-                        ; down to coolkey to return this key press
-
- CMP #13                ; If A = 13 then this is the return character, so jump
- BEQ coolkey            ; down to coolkey to return this key press
-
- CMP #21                ; If A <> 21 jump up to badkey
- BNE badkey
-
-.coolkey
-
-                        ; If we get here then the character we read is valid, so
-                        ; return it
-
- CLC                    ; Clear the C flag
-
- RTS                    ; Return from the subroutine
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
@@ -49481,13 +49497,17 @@ ENDIF
                         ; the cursor so it's in the right position following
                         ; the print
 
- EQUB $2C               ; Skip the next instruction by turning it into
-                        ; $2C $85 $08, or BIT $0885, which does nothing apart
-                        ; from affect the flags
+                        ; --- Mod: Code removed for Compendium: --------------->
 
- STA SC+1               ; This instruction has no effect, as it is always
-                        ; skipped, so perhaps this was accidentally left behind
-                        ; from development
+;EQUB $2C               ; Skip the next instruction by turning it into
+;                       ; $2C $85 $08, or BIT $0885, which does nothing apart
+;                       ; from affect the flags
+;
+;STA SC+1               ; This instruction has no effect, as it is always
+;                       ; skipped, so perhaps this was accidentally left behind
+;                       ; from development
+
+                        ; --- End of removed code ----------------------------->
 
  LDY #7                 ; We want to print the 8 bytes of character data to the
                         ; screen (one byte per row), so set up a counter in Y
@@ -52262,8 +52282,12 @@ ENDIF
 
  RTS                    ; Return from the subroutine
 
- RTS                    ; This instruction has no effect as we have already
-                        ; returned from the subroutine
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;RTS                    ; This instruction has no effect as we have already
+;                       ; returned from the subroutine
+
+                        ; --- End of removed code ----------------------------->
 
 ; ******************************************************************************
 ;
