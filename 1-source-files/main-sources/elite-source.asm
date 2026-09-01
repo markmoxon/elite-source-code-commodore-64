@@ -292,18 +292,27 @@ ENDIF
 
  sfxelas2 = 15          ; Sound 15 = Being hit by lasers 2
 
- NRU% = 0               ; The number of planetary systems with extended system
+                        ; --- Mod: Code removed for bug fixes: ---------------->
+
+;NRU% = 0               ; The number of planetary systems with extended system
+;                       ; description overrides in the RUTOK table
+;                       ;
+;                       ; NRU% is set to 0 in the original source, but this is a
+;                       ; bug, as it should match the number of entries in the
+;                       ; RUGAL table
+;                       ;
+;                       ; This bug causes the Data on System screen to crash the
+;                       ; game for a small number of systems - for example, the
+;                       ; game will freeze if you bring up the Data on System
+;                       ; screen after docking at Biarge in the first galaxy
+;                       ; during the Constrictor mission
+
+                        ; --- And replaced by: -------------------------------->
+
+ NRU% = 26              ; The number of planetary systems with extended system
                         ; description overrides in the RUTOK table
-                        ;
-                        ; NRU% is set to 0 in the original source, but this is a
-                        ; bug, as it should match the number of entries in the
-                        ; RUGAL table
-                        ;
-                        ; This bug causes the Data on System screen to crash the
-                        ; game for a small number of systems - for example, the
-                        ; game will freeze if you bring up the Data on System
-                        ; screen after docking at Biarge in the first galaxy
-                        ; during the Constrictor mission
+
+                        ; --- End of replacement ------------------------------>
 
  RE = $23               ; The obfuscation byte used to hide the recursive tokens
                         ; table from crackers viewing the binary code
