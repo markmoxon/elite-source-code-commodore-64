@@ -88,12 +88,12 @@ else ifeq ($(variant), source-disk-files)
   suffix=-flicker-free-source-disk-files
 else ifeq ($(variant), gma86-pal)
   variant-number=2
-  folder=gma86-pal
+  folder=-elite-compendium-gma86-pal
   suffix=-pal
 else
   variant-number=1
   folder=gma85-ntsc
-  suffix=-ntsc
+  suffix=-elite-compendium-gma85-ntsc
 endif
 
 .PHONY:all
@@ -132,8 +132,8 @@ ifeq ($(variant-number), 1)
 	@$(C1541) \
     -format "elite,1" \
             d64 \
-            5-compiled-game-disks/elite-compendium-commodore-64$(suffix).d64 \
-    -attach 5-compiled-game-disks/elite-compendium-commodore-64$(suffix).d64 \
+            5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
+    -attach 5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
     -write 3-assembled-output/firebird.bin firebird \
     -write 3-assembled-output/gma1.unprot.bin gma1 \
     -write 3-assembled-output/gma3.bin gma3 \
@@ -145,8 +145,8 @@ else ifeq ($(variant-number), 2)
 	@$(C1541) \
     -format "elite,1" \
             d64 \
-            5-compiled-game-disks/elite-compendium-commodore-64$(suffix).d64 \
-    -attach 5-compiled-game-disks/elite-compendium-commodore-64$(suffix).d64 \
+            5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
+    -attach 5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
     -write 3-assembled-output/firebird.bin firebird \
     -write 3-assembled-output/byebyejulie.bin byebyejulie \
     -write 3-assembled-output/gma1.unprot.bin gma1 \
