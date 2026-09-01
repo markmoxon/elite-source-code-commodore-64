@@ -6211,46 +6211,48 @@ ENDMACRO
  ECHR 'D'
  EQUB VE
 
- EJMP 1                 ; Token 26:     "{all caps}WELCOME TO  THE SEVENTEENTH
- ECHR 'W'               ;                GALAXY!"
- ECHR 'E'               ;
- ECHR 'L'               ; Encoded as:   "{1}WELCOME TO THE SEVENTEENTH GALAXY!"
- ECHR 'C'
- ECHR 'O'
- ECHR 'M'
- ECHR 'E'
- ECHR ' '
- ECHR 'T'
- ECHR 'O'
- ECHR ' '
- ECHR 'T'
- ECHR 'H'
- ECHR 'E'
- ECHR ' '
- ECHR 'S'
- ECHR 'E'
- ECHR 'V'
- ECHR 'E'
- ECHR 'N'
- ECHR 'T'
- ECHR 'E'
- ECHR 'E'
- ECHR 'N'
- ECHR 'T'
- ECHR 'H'
- ECHR ' '
- ECHR 'G'
- ECHR 'A'
- ECHR 'L'
- ECHR 'A'
- ECHR 'X'
- ECHR 'Y'
- ECHR '!'
- EQUB VE
+                        ; --- Mod: Code removed for improved disk menu: ------->
 
-                        ; --- Mod: Code added for improved disk menu: --------->
+;EJMP 1                 ; Token 26:     "{all caps}WELCOME TO  THE SEVENTEENTH
+;ECHR 'W'               ;                GALAXY!"
+;ECHR 'E'               ;
+;ECHR 'L'               ; Encoded as:   "{1}WELCOME TO THE SEVENTEENTH GALAXY!"
+;ECHR 'C'
+;ECHR 'O'
+;ECHR 'M'
+;ECHR 'E'
+;ECHR ' '
+;ECHR 'T'
+;ECHR 'O'
+;ECHR ' '
+;ECHR 'T'
+;ECHR 'H'
+;ECHR 'E'
+;ECHR ' '
+;ECHR 'S'
+;ECHR 'E'
+;ECHR 'V'
+;ECHR 'E'
+;ECHR 'N'
+;ECHR 'T'
+;ECHR 'E'
+;ECHR 'E'
+;ECHR 'N'
+;ECHR 'T'
+;ECHR 'H'
+;ECHR ' '
+;ECHR 'G'
+;ECHR 'A'
+;ECHR 'L'
+;ECHR 'A'
+;ECHR 'X'
+;ECHR 'Y'
+;ECHR '!'
+;EQUB VE
 
- ECHR '5'               ; Token 27:     "5. EXIT{crlf}
+                        ; --- And replaced by: -------------------------------->
+
+ ECHR '5'               ; Token 26:     "5. EXIT{crlf}
  ECHR '.'               ;               "
  ECHR ' '
  ECHR 'E'
@@ -6259,7 +6261,7 @@ ENDMACRO
  ETWO '-', '-'
  EQUB VE
 
- ECHR '5'               ; Token 28:     "5. CATALOGUE DISK{crlf}
+ ECHR '5'               ; Token 27:     "5. CATALOGUE DISK{crlf}
  ECHR '.'               ;                6. DELETE FILE{crlf}
  ECHR ' '               ;                7. EXIT{crlf}
  ECHR 'C'               ;               "
@@ -6296,7 +6298,7 @@ ENDMACRO
  ETWO '-', '-'
  EQUB VE
 
- ETWO '-', '-'          ; Token 29:     "{crlf}FILE DELETED"
+ ETWO '-', '-'          ; Token 28:     "{crlf}FILE DELETED"
  ECHR 'F'
  ECHR 'I'
  ETWO 'L', 'E'
@@ -6308,7 +6310,29 @@ ENDMACRO
  ETWO 'E', 'D'
  EQUB VE
 
-                        ; --- End of added code ------------------------------->
+ EJMP 1                 ; Token 29:     "{all caps}SEQ"
+ ETWO 'S', 'E'
+ ECHR 'Q'
+ EQUB VE
+
+ EJMP 1                 ; Token 30:     "{all caps}PRG"
+ ECHR 'P'
+ ECHR 'R'
+ ECHR 'G'
+ EQUB VE
+
+ EJMP 1                 ; Token 31:     "{all caps}USR"
+ ECHR 'U'
+ ECHR 'S'
+ ECHR 'R'
+ EQUB VE
+
+ EJMP 1                 ; Token 32:     "{all caps}REL"
+ ETWO 'R', 'E'
+ ECHR 'L'
+ EQUB VE
+
+                        ; --- End of replacement ------------------------------>
 
 .endian
 

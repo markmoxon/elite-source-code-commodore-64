@@ -17819,22 +17819,7 @@ ENDIF
                         ; to save (including drive number and directory) into
                         ; INWK
 
- LDA #&60               ; Modify the KERNALSETUP routine so it returns before
- STA dmod1              ; performing the KERNALSETLFS and KERNALSETNAM calls at
-                        ; the end, so we can insert our own calls instead
-                        ;
-                        ; This modifies the LDX DISK instruction at dmod1 into
-                        ; an RTS instruction (opcode &60)
-
- JSR KERNALSETUP        ; Set up memory so we can use the Kernal functions,
-                        ; which includes swapping the contents of zero page with
-                        ; the page at $CE00 (so the Kernal functions get a zero
-                        ; page that works for them, and any changes they make do
-                        ; not corrupt the game's zero page variables)
-
- LDA #&AE               ; Revert the modification to restore the KERNALSETUP
- STA dmod1              ; routine to its previous state, by restoring the LDX
-                        ; DISK instruction at dmod1 (opcode &AE)
+ JSR SetUpForDisk       ; Configure the state of the system for a disk operation
 
  LDA #1                 ; Call the Kernal's SETLFS function to set the file
  LDY #15                ; parameters as follows:
@@ -17885,7 +17870,7 @@ ENDIF
                         ; indicates that a disk error occurred, so jump to
                         ; tapeerror via deleteerror to print "DISK ERROR"
 
- LDA #29                ; Print secondary text token 28 ("FILE DELETED")
+ LDA #28                ; Print secondary text token 28 ("{crlf}FILE DELETED")
  JSR DETOK3
 
  JSR t                  ; Scan the keyboard until a key is pressed, returning
@@ -33194,21 +33179,23 @@ ENDIF
 
                         ; --- Mod: Code added for improved disk menu: --------->
 
- LDA #27                ; Set A to 26 so we print secondary token 27 for tape
+ LDA #26                ; Set A to 26 so we print secondary text token 26 when
+                        ; tape is configured
 
  BIT DISK               ; If tape is configured, jump to save1
  BPL save1
 
- LDA #28                ; Set A to 26 so we print secondary token 28 for disk
+ LDA #27                ; Set A to 26 so we print secondary text token 27 when
+                        ; disk is configured
 
 .save1
 
- JSR DETOK3             ; Print second extended token 27 to present this option
+ JSR DETOK3             ; Print second extended token 26 to present this option
                         ; for tape:
                         ;
                         ;   5. Exit
                         ;
-                        ; or print second extended token 28 to present these
+                        ; or print second extended token 27 to present these
                         ; options for disk:
                         ;
                         ;   5. Catalogue disk
@@ -52376,31 +52363,36 @@ ENDIF
 
  LDA TAP%-3,X           ; Set A to the file type
 
- CMP #&81               ; If the file type is SEQ then we want to show it, so
- BEQ dcat4              ; jump to dcat4 to print this file
+ AND #%00000111         ; Reduce the file type down to the five core types, in
+                        ; the range 0 to 4
 
- CMP #&82               ; If the file type is not PRG then we don't want to show
- BNE dcat5              ; it, so jump to dcat5 to to move on to the next file
+ BEQ dcat5              ; If the core file type is zero then the file has been
+                        ; deleted, so jump to dcat5 to to move on to the next file
                         ; without printing this filename
 
-.dcat4
+ CMP #5                 ; Ensure that A is in the range 1 to 4
+ BCS dcat5
 
- PHA                    ; Store the file type on the stack
+ ADC #28                ; Convert A into a secondary text token number in the
+                        ; range 29 to 32, for "SEQ", "PRG", "USR" or "REL" (this
+                        ; addition works as we know the C flag is clear)
+
+ PHA                    ; Store the file type token number on the stack
 
  JSR PrintDiskString    ; Print the filename at offset X
 
  LDA #20                ; Move the text cursor to column 20
  JSR DOXC
 
- PLA                    ; Print the file type from the stack
- JSR PrintFileType
+ PLA                    ; Print the file type secondary text token from the
+ JSR DETOK3             ; stack
 
  JSR TT67               ; Print a newline
 
  INC filesPrinted       ; Increment the number of filenames printed
 
- LDA filesPrinted       ; If we haven't printed 20 filenames then jump to dcat5
- CMP #20                ; to move on to the next file
+ LDA filesPrinted       ; If we haven't printed 23 filenames then jump to dcat5
+ CMP #23                ; to move on to the next file
  BCC dcat5
 
  JSR TidyUpAfterDisk    ; Restore the state of the system following the disk
@@ -52411,7 +52403,8 @@ ENDIF
 
  JSR SetUpForDisk       ; Configure the state of the system for a disk operation
 
- JMP dcat1              ; Jump to dcat1 to display the next page
+ LDA #0                 ; Reset the number of files printed so we start another
+ STA filesPrinted       ; page
 
 .dcat5
 
@@ -52575,52 +52568,6 @@ ENDIF
 
 ; ******************************************************************************
 ;
-;       Name: PrintFileType
-;       Type: Subroutine
-;   Category: Save and load
-;    Summary: Print a string from the disk catalogue
-;
-; ------------------------------------------------------------------------------
-;
-; Arguments:
-;
-;   A                   The file type
-;
-; ******************************************************************************
-
-                        ; --- Mod: Code added for improved disk menu: --------->
-
-.PrintFileType
-
- RTS
-
-IF FALSE
-
- CMP #&81               ; If the file type is SEQ, jump to type1
- BEQ type1
-
- LDA #'P'               ; Print "PRG" and return from the subroutine using a
- JSR TT27               ; tail call
- LDA #'R'
- JSR TT27
- LDA #'G'
- JMP TT27
-
-.type1
-
- LDA #'S'               ; Print "SEQ" and return from the subroutine using a
- JSR TT27               ; tail call
- LDA #'E'
- JSR TT27
- LDA #'Q'
- JMP TT27
-
-ENDIF
-
-                        ; --- End of added code ------------------------------->
-
-; ******************************************************************************
-;
 ;       Name: PrintDiskString
 ;       Type: Subroutine
 ;   Category: Save and load
@@ -52675,7 +52622,6 @@ ENDIF
 .pstr4
 
  RTS                    ; Return from the subroutine
-
 
 ; ******************************************************************************
 ;
