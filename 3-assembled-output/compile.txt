@@ -26328,7 +26328,7 @@ Saving file '3-assembled-output/SPRITE.bin'
      02BC   10 F7      BPL &02B5
      02BE   4C C4 02   JMP &02C4
 .filename
-     02C1   47 4D 2A 
+     02C1   43 4D 2A 
 .RunGMA
      02C4   A9 00      LDA #&00
      02C6   20 90 FF   JSR &FF90
@@ -26440,7 +26440,7 @@ Saving file '3-assembled-output/firebird.bin'
      03B6   20 BD FF   JSR &FFBD
      03B9   60         RTS
 .filename
-     03BA   47 4D 41 
+     03BA   43 4D 41 
 .fileNumber
      03BD   20 
      03BE   20 57 41 ...

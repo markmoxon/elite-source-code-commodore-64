@@ -135,11 +135,11 @@ ifeq ($(variant-number), 1)
             5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
     -attach 5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
     -write 3-assembled-output/firebird.bin firebird \
-    -write 3-assembled-output/gma1.unprot.bin gma1 \
-    -write 3-assembled-output/gma3.bin gma3 \
-    -write 3-assembled-output/gma4.bin gma4 \
-    -write 3-assembled-output/gma5.bin gma5 \
-    -write 3-assembled-output/gma6.bin gma6 \
+    -write 3-assembled-output/gma1.unprot.bin cma1 \
+    -write 3-assembled-output/gma3.bin cma3 \
+    -write 3-assembled-output/gma4.bin cma4 \
+    -write 3-assembled-output/gma5.bin cma5 \
+    -write 3-assembled-output/gma6.bin cma6 \
     -write 3-assembled-output/readme.txt "readme,s"
 else ifeq ($(variant-number), 2)
 	@$(C1541) \
@@ -149,10 +149,10 @@ else ifeq ($(variant-number), 2)
     -attach 5-compiled-game-disks/elite-commodore-64$(suffix).d64 \
     -write 3-assembled-output/firebird.bin firebird \
     -write 3-assembled-output/byebyejulie.bin byebyejulie \
-    -write 3-assembled-output/gma1.unprot.bin gma1 \
-    -write 3-assembled-output/gma3.bin gma3 \
-    -write 3-assembled-output/gma4.bin gma4 \
-    -write 3-assembled-output/gma5.bin gma5 \
-    -write 3-assembled-output/gma6.bin gma6 \
+    -write 3-assembled-output/gma1.unprot.bin cma1 \
+    -write 3-assembled-output/gma3.bin cma3 \
+    -write 3-assembled-output/gma4.bin cma4 \
+    -write 3-assembled-output/gma5.bin cma5 \
+    -write 3-assembled-output/gma6.bin cma6 \
     -write 3-assembled-output/readme.txt "readme,s"
 endif

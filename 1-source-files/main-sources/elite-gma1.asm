@@ -483,7 +483,15 @@ ENDIF
 
 .filename
 
- EQUS "GMA"
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;EQUS "GMA"
+
+                        ; --- And replaced by: -------------------------------->
+
+ EQUS "CMA"
+
+                        ; --- End of replacement ------------------------------>
 
 .fileNumber
 
