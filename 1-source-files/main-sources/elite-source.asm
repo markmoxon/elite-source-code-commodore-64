@@ -12021,10 +12021,31 @@ ENDIF
  AND #%00000100         ; the ship's NEWB flags is set, and if it is (i.e. the
  BNE TN5                ; station is hostile), jump to TN5 to spawn some cops
 
- LDA MANY+SHU+1         ; The station is not hostile, so check how many
- BNE TA1                ; Transporters there are in the vicinity, and if we
+                        ; --- Mod: Code removed for better docking computer: -->
+
+;LDA MANY+SHU+1         ; The station is not hostile, so check how many
+;BNE TA1                ; Transporters there are in the vicinity, and if we
+;                       ; already have one, return from the subroutine (as TA1
+;                       ; contains an RTS)
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA MANY+SHU+1         ; Set A to the number of Transporters in the vicinity
+
+ ORA auto               ; If the docking computer is on then auto is &FF, so
+                        ; this ensures that A is always non-zero when we are
+                        ; auto-docking, so the following jump to TA1 will be
+                        ; taken and no Transporters will be spawned from the
+                        ; space station (unlike in the disc version, where you
+                        ; can get smashed into space dust by a badly timed
+                        ; Transporter launch when using the docking computer)
+
+ BNE TA1                ; The station is not hostile, so check how many
+                        ; Transporters there are in the vicinity, and if we
                         ; already have one, return from the subroutine (as TA1
                         ; contains an RTS)
+
+                        ; --- End of replacement ------------------------------>
 
                         ; If we get here then the station is not hostile, so we
                         ; can consider spawning a Transporter or Shuttle
@@ -35259,6 +35280,26 @@ ENDIF
 ; ******************************************************************************
 
 .WARP
+
+                        ; --- Mod: Code added for better docking computer: ---->
+
+ LDA auto               ; If the docking computer is engaged (auto is non-zero)
+ AND SSPR               ; and we are inside the space station safe zone (SSPR
+ BEQ warp1              ; is non-zero), then this sets A to be non-zero, so if
+                        ; this is not the case, jump to warp1 to skip the
+                        ; following
+
+                        ; If we get here then the docking computer is engaged
+                        ; and we are in the space station safe zone, in which
+                        ; case the fast-forward button docks us instantly
+
+ JMP GOIN               ; Go to the docking bay (i.e. show the ship hangar
+                        ; screen) and return from the subroutine with a tail
+                        ; call
+
+.warp1
+
+                        ; --- End of added code ------------------------------->
 
  LDX JUNK               ; Set X to the total number of junk items in the
                         ; vicinity (e.g. asteroids, escape pods, cargo
