@@ -88,8 +88,8 @@ else ifeq ($(variant), source-disk-files)
   suffix=-flicker-free-source-disk-files
 else ifeq ($(variant), gma86-pal)
   variant-number=2
-  folder=-elite-compendium-gma86-pal
-  suffix=-pal
+  folder=gma86-pal
+  suffix=-elite-compendium-gma86-pal
 else
   variant-number=1
   folder=gma85-ntsc
