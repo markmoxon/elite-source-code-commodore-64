@@ -201,6 +201,15 @@ ENDIF
 
  YINT = $27             ; Internal key number for key "Y" (Y/N)
 
+                        ; --- Mod: Code added for speed control: -------------->
+
+ SPEED = 3              ; The minimum number of vertical syncs we want to spend
+                        ; in the main flight loop (there are 50 per second)
+                        ;
+                        ; Higher figure = slower game speed
+
+                        ; --- End of added code ------------------------------->
+
  RED = %01010101        ; Four multicolour bitmap mode pixels of colour %01,
                         ; which is mapped to the danger colour for the dashboard
                         ; dials, or red on the scanner, via the colour mapping
@@ -30643,14 +30652,41 @@ ENDIF
 
 .TT100
 
+                        ; --- Mod: Code added for speed control: -------------->
+
+ LDA #SPEED             ; Set the sync counter to SPEED, the minimum number of
+ STA DL                 ; vertical syncs we want to spend in the main loop
+                        ;
+                        ; We can use the DL variable, which is unused in this
+                        ; version of Elite
+
+                        ; --- End of added code ------------------------------->
+
  JSR M%                 ; Call M% to iterate through the main flight loop
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+ LDA DL                 ; Wait until the sync counter reaches 0
+ BNE P%-2
+
+                        ; --- End of added code ------------------------------->
 
  DEC DLY                ; Decrement the delay counter in DLY, so any in-flight
                         ; messages get removed once the counter reaches zero
 
- BEQ me2                ; If DLY is now 0, jump to me2 to remove any in-flight
-                        ; message from the space view, and once done, return to
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;BEQ me2                ; If DLY is now 0, jump to me2 to remove any in-flight
+;                       ; message from the space view, and once done, return to
+;                       ; me3 below, skipping the following two instructions
+
+                        ; --- And replaced by: -------------------------------->
+
+ BNE P%+5               ; If DLY is now 0, jump to me2 to remove any in-flight
+ JMP me2                ; message from the space view, and once done, return to
                         ; me3 below, skipping the following two instructions
+
+                        ; --- End of replacement ------------------------------>
 
  BPL me3                ; If DLY is positive, jump to me3 to skip the next
                         ; instruction
@@ -45225,6 +45261,16 @@ ENDIF
                         ; interrupt, so we first have to restore the registers
                         ; we want to preserve, and restore the correct memory
                         ; configuration
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+ LDX DL                 ; Decrement the sync counter that we use to control the
+ BEQ P%+4               ; speed of the main flight loop, not going past zero
+ DEC DL                 ;
+                        ; We can use the DL variable, which is unused in this
+                        ; version of Elite
+
+                        ; --- End of added code ------------------------------->
 
  PLA                    ; Retrieve the value of X we stored on the stack at the
  TAX                    ; start of the interrupt routine, so it is preserved
