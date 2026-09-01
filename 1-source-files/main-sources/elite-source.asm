@@ -35255,6 +35255,13 @@ ENDIF
 
 .noswapxs
 
+                        ; --- Mod: Code added for improved joysticks: --------->
+
+ JMP scanmatrix         ; Continue by scanning the keyboard after reading
+                        ; the joystick
+
+                        ; --- End of added code ------------------------------->
+
 .nojoyst
 
  LDA QQ11               ; If QQ11 = 0 then this is the space view, so jump to
