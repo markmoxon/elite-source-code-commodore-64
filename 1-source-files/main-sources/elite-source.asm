@@ -1327,7 +1327,6 @@ ENDIF
                         ;   * Non-zero if we are inside the space station's safe
                         ;     zone
                         ;
-                        ;
                         ; This flag is at MANY+SST, which is no coincidence, as
                         ; MANY+SST is a count of how many space stations there
                         ; are in our local bubble, which is the same as saying
