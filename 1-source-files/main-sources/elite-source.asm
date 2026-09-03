@@ -30262,7 +30262,7 @@ ENDIF
                         ;
                         ; This is presumably a bug, which could be very easily
                         ; fixed by inserting one of the following instructions
-                        ; before the ADC #CYL2 instruction above:
+                        ; before the AND #3 instruction above:
                         ;
                         ;   * SEC would change the range to 25 to 28, which
                         ;     would cover the Asp Mk II, Python (pirate),
