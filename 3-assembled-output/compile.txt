@@ -36537,8 +36537,8 @@ Saving file '3-assembled-output/ELTE.bin'
      85AD   C9 64      CMP #&64
      85AF   B0 4A      BCS &85FB
      85B1   EE 8A 04   INC &048A
-     85B4   29 03      AND #&03
-     85B6   4A         LSR A
+     85B4   4A         LSR A
+     85B5   29 03      AND #&03
      85B7   69 18      ADC #&18
      85B9   A8         TAY
      85BA   20 98 83   JSR &8398
