@@ -58,9 +58,7 @@ See the [introduction](#introduction) for more information, or jump straight int
   * [Building the source disk files variant](#building-the-source-disk-files-variant)
   * [Differences between the variants](#differences-between-the-variants)
 
-* [Notes on the original source files](#notes-on-the-original-source-files)
-
-  * [Producing byte-accurate binaries](#producing-byte-accurate-binaries)
+* [Producing byte-accurate binaries](#producing-byte-accurate-binaries)
 
 ## Introduction
 
@@ -541,9 +539,7 @@ The main differences in the source disk variants compared to the Firebird varian
 
 See the [accompanying website](https://elite.bbcelite.com/c64/releases.html) for a comprehensive list of differences between the variants.
 
-## Notes on the original source files
-
-### Producing byte-accurate binaries
+## Producing byte-accurate binaries
 
 Instead of initialising workspaces with null values like BeebAsm, the original BBC Micro source code creates its workspaces by simply incrementing the `P%` and `O%` program counters, which means that the workspaces end up containing whatever contents the allocated memory had at the time. As the source files are broken into multiple BBC BASIC programs that run each other sequentially, this means the workspaces in the source code tend to contain either fragments of these BBC BASIC source programs, or assembled code from an earlier stage. This doesn't make any difference to the game code, which either initialises the workspaces at runtime or just ignores their initial contents, but if we want to be able to produce byte-accurate binaries from the modern BeebAsm assembly process, we need to include this "workspace noise" when building the project. Workspace noise is only loaded by the `encrypt` target; for the `build` target, workspaces are initialised with zeroes.
 
