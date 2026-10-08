@@ -40,8 +40,8 @@ C1541?=c1541
 # _VARIANT
 #   1 = GMA85 NTSC (default)
 #   2 = GMA85 PAL
-#   3 = source disk build (the binaries from running a build of the source disk)
-#   4 = source disk files (the binaries already on the source disk)
+#   3 = Source disk build (the binaries from running a build of the source disk)
+#   4 = Source disk files (the binaries already on the source disk)
 #
 # _MAX_COMMANDER
 #   TRUE  = Maxed-out commander
