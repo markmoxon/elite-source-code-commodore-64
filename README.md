@@ -423,7 +423,7 @@ or this on a Mac or Linux:
 make variant=source-disk-build
 ```
 
-This does not currently produce a game disk, but instead produces the same binaries as the original build process. In the original development system, these files would then be transmitted from the BBC Micro to the Commodore 64 via a serial link, but that setup isn't emulated here.
+This does not currently produce a game disk, but instead produces the same binaries as as those produced by the original build process on the source disk. In the original development system, these files would then be transmitted from the BBC Micro to the Commodore 64 via a serial link, but that setup isn't emulated here.
 
 The verification checksums for this version are as follows:
 
@@ -471,7 +471,7 @@ or this on a Mac or Linux:
 make variant=source-disk-files
 ```
 
-This does not currently produce a game disk, but instead produces the same binaries as the original build process. In the original development system, these files would then be transmitted from the BBC Micro to the Commodore 64 via a serial link, but that setup isn't emulated here.
+This does not currently produce a game disk, but instead produces the binaries from the source disk on Ian Bell's personal website, which differ slightly from the binaries that are produced by running the build process on the source disk. In the original development system, these files would then be transmitted from the BBC Micro to the Commodore 64 via a serial link, but that setup isn't emulated here.
 
 The verification checksums for this version are as follows:
 
