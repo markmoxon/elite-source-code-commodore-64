@@ -61,6 +61,16 @@
  LOAD% = $1D00          ; The address where the first block of game code will
                         ; be loaded (ELITE A to C)
 
+                        ; --- Mod: Code added for Compendium: ----------------->
+
+ CODE_EXTRA% = &F871    ; The address where the extra code in the EXTRA.bin file
+                        ; will be run
+
+ LOAD_EXTRA% = &865B    ; The address where the extra code in the EXTRA.bin file
+                        ; will be loaded
+
+                        ; --- End of added code ------------------------------->
+
 IF _GMA_RELEASE
 
  C% = $6A00             ; The address where the second block of game code will
@@ -2350,10 +2360,10 @@ ENDIF
 
 .VOL
 
- EQUB 15                \ The volume level for the game's sound effects (0-15)
-                        \
-                        \ This is controlled by the "<" and ">" keys while the
-                        \ game is paused, and the default level is 15
+ EQUB 15                ; The volume level for the game's sound effects (0-15)
+                        ;
+                        ; This is controlled by the "<" and ">" keys while the
+                        ; game is paused, and the default level is 15
 
                         ; --- End of replacement ------------------------------>
 
@@ -18737,15 +18747,24 @@ ENDIF
 
 .TT25
 
- LDA #1                 ; Clear the screen, draw a border box, and set up a
- JSR TRADEMODE          ; trading screen with a view type in QQ11 of 1
+                        ; --- Mod: Code removed for species bug fix: ---------->
 
- LDA #9                 ; Move the text cursor to column 9
- JSR DOXC
+;LDA #1                 ; Clear the screen, draw a border box, and set up a
+;JSR TRADEMODE          ; trading screen with a view type in QQ11 of 1
+;
+;LDA #9                 ; Move the text cursor to column 9
+;JSR DOXC
+;
+;LDA #163               ; Print recursive token 3 ("DATA ON {selected system
+;JSR NLIN3              ; name}" and draw a horizontal line at pixel row 19
+;                       ; to box in the title
 
- LDA #163               ; Print recursive token 3 ("DATA ON {selected system
- JSR NLIN3              ; name}" and draw a horizontal line at pixel row 19
-                        ; to box in the title
+                        ; --- And replaced by: -------------------------------->
+
+ JSR GetSpeciesSize     ; Modify the operand of the LDA instruction at TT75 to
+                        ; the length of the species line and clear the screen
+
+                        ; --- End of replacement ------------------------------>
 
  JSR TTX69              ; Print a paragraph break and set Sentence Case
 
@@ -18845,23 +18864,72 @@ ENDIF
  LDX QQ6                ; number with a decimal point (by setting the C flag),
  JSR pr2                ; so the number printed will be population / 10
 
- LDA #198               ; Print recursive token 38 (" BILLION"), followed by a
- JSR TT60               ; paragraph break and Sentence Case
+                        ; --- Mod: Code removed for species bug fix: ---------->
 
- LDA #'('               ; Print an opening bracket
+;LDA #198               ; Print recursive token 38 (" BILLION"), followed by a
+;JSR TT60               ; paragraph break and Sentence Case
+;
+;LDA #'('               ; Print an opening bracket
+;JSR TT27
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDA #198               ; Print recursive token 38 (" BILLION")
  JSR TT27
+
+                        ; --- End of replacement ------------------------------>
 
  LDA QQ15+4             ; Now to calculate the species, so first check bit 7 of
  BMI TT75               ; s2_lo, and if it is set, jump to TT75 as this is an
                         ; alien species
 
+                        ; --- Mod: Code added for species bug fix: ------------>
+
+ JSR TTX69              ; Print a paragraph break and switch to Sentence Case
+
+ LDA #'('               ; Print an opening bracket
+ JSR TT27
+
+                        ; --- End of added code ------------------------------->
+
  LDA #188               ; Bit 7 of s2_lo is clear, so print recursive token 28
  JSR TT27               ; ("HUMAN COLONIAL")
 
- JMP TT76               ; Jump to TT76 to print "S)" and a paragraph break, so
+                        ; --- Mod: Code removed for species bug fix: ---------->
+
+;JMP TT76               ; Jump to TT76 to print "S)" and a paragraph break, so
+;                       ; the whole species string is "(HUMAN COLONIALS)"
+
+                        ; --- And replaced by: -------------------------------->
+
+ JSR TT76               ; Call TT76 to print "S)" and a paragraph break, so
                         ; the whole species string is "(HUMAN COLONIALS)"
 
+ JMP spec3              ; Jump to spec3 to print the rest of the system data
+
+                        ; --- End of replacement ------------------------------>
+
 .TT75
+
+                        ; --- Mod: Code added for species bug fix: ------------>
+
+ LDA #0                 ; The operand in this instruction is modified to the
+                        ; string length by the code at the start of the routine
+                        ;
+                        ; So this sets A to the length of the species string
+
+ JMP PrintSpecies       ; Print the species line to wrap if required, while
+                        ; inserting the correct number of blank lines
+                        ;
+                        ; When finished, this routine jumps to spec3 to print
+                        ; the rest of the system data
+
+.spec2
+
+ LDA #'('               ; Print an opening bracket
+ JSR TT27
+
+                        ; --- End of added code ------------------------------->
 
  LDA QQ15+5             ; This is an alien species, and we start with the first
  LSR A                  ; adjective, so fetch bits 2-7 of s2_hi into A and push
@@ -18946,9 +19014,23 @@ ENDIF
  LDA #'S'               ; Print an "S" to pluralise the species
  JSR TT27
 
+                        ; --- Mod: Code removed for species bug fix: ---------->
+
+;LDA #')'               ; And finally, print a closing bracket, followed by a
+;JSR TT60               ; paragraph break and Sentence Case, to end the species
+;                       ; section
+
+                        ; --- And replaced by: -------------------------------->
+
  LDA #')'               ; And finally, print a closing bracket, followed by a
- JSR TT60               ; paragraph break and Sentence Case, to end the species
-                        ; section
+ JMP TT60               ; paragraph break and Sentence Case, to end the species
+                        ; section, returning from the subroutine using a tail
+                        ; call (so this turns the species-printing code at spec2
+                        ; into a subroutine)
+
+.spec3
+
+                        ; --- End of replacement ------------------------------>
 
  LDA #193               ; Print recursive token 33 ("GROSS PRODUCTIVITY"),
  JSR TT68               ; followed by a colon
@@ -53040,3 +53122,121 @@ ENDIF
  PRINT "B% = ", ~CODE%
  PRINT "G% = ", ~G%
  PRINT "NA2% = ", ~NA2%
+
+; ******************************************************************************
+;
+; ELITE EXTRA FILE
+;
+; Produces the binary files EXTRA.bin that gets appended to gma4 so it gets
+; loaded after the dashboard image at DSTORE%.
+;
+; ******************************************************************************
+
+ ORG CODE_EXTRA%        ; Set the assembly address to CODE_EXTRA%, which gets
+                        ; loaded just after the copy of the dashboard image
+
+ GUARD K%               ; Ensure we don't assemble over the ship data blocks
+
+; ******************************************************************************
+;
+;       Name: GetSpeciesSize
+;       Type: Subroutine
+;   Category: Species bug fix
+;    Summary: Modify the code at TT75 to the size of the species line
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for species bug fix: ------------>
+
+.GetSpeciesSize
+
+ LDA #%11000000         ; Set the DTW4 flag to %11000000 (justify text, buffer
+ STA DTW4               ; entire token including carriage returns)
+
+ LDA #0                 ; Set DTW5 to 0, so DTW5 (which holds the size of the
+ STA DTW5               ; justified text buffer at BUF) is zeroed
+
+ JSR spec2              ; Print the species string in brackets, into the buffer
+
+ LDA DTW5               ; Modify the operand of the LDA instruction at TT75 to
+ STA TT75+1             ; the length of the species line
+
+ JSR MT15               ; Call MT15 to switch to left-aligned text when printing
+                        ; extended tokens disabling the justify text setting we
+                        ; set above
+
+ LDA #1                 ; Clear the screen, draw a border box, and set up a
+ JSR TRADEMODE          ; trading screen with a view type in QQ11 of 1
+
+ LDA #9                 ; Move the text cursor to column 9
+ JSR DOXC
+
+ LDA #163               ; Print recursive token 3 ("DATA ON {selected system
+ JMP NLIN3              ; name}" and draw a horizontal line at pixel row 19
+                        ; to box in the title, returning from the subroutine
+                        ; using a tail call
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+;       Name: PrintSpecies
+;       Type: Subroutine
+;   Category: Species bug fix
+;    Summary: Print the species line to wrap if required, while inserting the
+;             correct number of blank lines
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for species bug fix: ------------>
+
+.PrintSpecies
+
+ CMP #LL+2              ; If the species string is too long to fit within the
+ BCS spec1              ; line length in LL (including the carriage return at
+                        ; the end), skip the following instruction, so we drop
+                        ; the blank line after the population line and can
+                        ; spread the species over two lines
+
+ JSR TT67               ; Print a newline
+
+.spec1
+
+                        ; We now print the species as justified text, so long
+                        ; species strings will automatically be split over two
+                        ; lines
+
+ JSR MT14               ; Call MT14 to switch to justified text
+
+ LDA #1                 ; Move the text cursor to column 1 (so short species
+ STA XC                 ; strings still do a carriage return)
+
+ JSR spec2              ; Print the species string in brackets as justified
+                        ; text
+
+ JSR MT15               ; Call MT15 to switch to left-aligned text when printing
+                        ; extended tokens, disabling the justify text setting we
+                        ; set above
+
+ JSR TT67               ; Print a newline to insert a blank line after the
+                        ; species
+
+ JMP spec3              ; Jump to spec3 to print the rest of the system data
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
+; Save EXTRA.bin
+;
+; ******************************************************************************
+
+ PRINT "EXTRA"
+ PRINT "Assembled at ", ~CODE_EXTRA%
+ PRINT "Ends at ", ~P%
+ PRINT "Code size is ", ~(P% - CODE_EXTRA%)
+ PRINT "Execute at ", ~LOAD_EXTRA%
+ PRINT "Reload at ", ~LOAD_EXTRA%
+
+ PRINT "S.EXTRA ", ~CODE_EXTRA%, " ", ~P%, " ", ~LOAD_EXTRA%, " ", ~LOAD_EXTRA%
+ SAVE "3-assembled-output/EXTRA.bin", CODE_EXTRA%, P%, LOAD_EXTRA%

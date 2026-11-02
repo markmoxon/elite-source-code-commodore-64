@@ -1197,8 +1197,18 @@ ENDIF
 
  CLI                    ; Allow interrupts again
 
- LDX #9                 ; Set X = $16 so we copy 9 pages of data from DIALS
-                        ; into DSTORE%
+                        ; --- Mod: Code removed for Compendium: --------------->
+
+;LDX #9                 ; Set X = 9 so we copy 9 pages of data from DIALS into
+;                       ; DSTORE%
+
+                        ; --- And replaced by: -------------------------------->
+
+ LDX #10                ; Set X = 9 so we copy 10 pages of data from DIALS into
+                        ; DSTORE%, so we also copy the extra code in EXTRA.bin
+                        ; that's been appended to the gma4 binary
+
+                        ; --- End of replacement ------------------------------>
 
  LDA #LO(DSTORE%)       ; Set ZP(1 0) = DSTORE%
  STA ZP

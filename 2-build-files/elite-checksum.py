@@ -51,7 +51,7 @@ if release == 1 or release == 2:
     # GMA85
     b = 0x1D00                  # B%
     g = 0x1D81                  # G%
-    na2_per_cent = 0x2619       # NA2%
+    na2_per_cent = 0x2611       # NA2%
     w = 0x4000                  # W%
     x = 0x7590                  # X%
     u = 0x75E4                  # U%
@@ -60,7 +60,13 @@ if release == 1 or release == 2:
     prg_locode = b'\x00\x1D'    # gma5
     prg_hicode = b'\x00\x6A'    # gma6
 
-    padding_comlod = b'\x00\xFF\x00\xFF\x00'
+    # Use padding_comlod to load EXTRA.bin into memory for Compendium
+    padding_comlod = bytearray()
+    extend_file = open("3-assembled-output/EXTRA.bin", "rb")
+    padding_comlod.extend(extend_file.read())
+    extend_file.close()
+
+    # padding_comlod = b'\x00\xFF\x00\xFF\x00'
     padding_locode = b'\x00\xFF\x00'
     padding_hicode = b'\xFF\x00\xFF\x00\xFF\x00\xFF\x00\xFF'
 
