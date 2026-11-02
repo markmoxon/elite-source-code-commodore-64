@@ -18758,38 +18758,42 @@ ENDIF
 ;LDA #163               ; Print recursive token 3 ("DATA ON {selected system
 ;JSR NLIN3              ; name}" and draw a horizontal line at pixel row 19
 ;                       ; to box in the title
+;
+;JSR TTX69              ; Print a paragraph break and set Sentence Case
+;
+;JSR TT146              ; If the distance to this system is non-zero, print
+;                       ; "DISTANCE", then the distance, "LIGHT YEARS" and a
+;                       ; paragraph break, otherwise just move the cursor down
+;                       ; a line
+;
+;LDA #194               ; Print recursive token 34 ("ECONOMY") followed by
+;JSR TT68               ; a colon
+;
+;LDA QQ3                ; The system economy is determined by the value in QQ3,
+;                       ; so fetch it into A. First we work out the system's
+;                       ; prosperity as follows:
+;                       ;
+;                       ;   QQ3 = 0 or 5 = %000 or %101 = Rich
+;                       ;   QQ3 = 1 or 6 = %001 or %110 = Average
+;                       ;   QQ3 = 2 or 7 = %010 or %111 = Poor
+;                       ;   QQ3 = 3 or 4 = %011 or %100 = Mainly
+;
+;CLC                    ; If (QQ3 + 1) >> 1 = %10, i.e. if QQ3 = %011 or %100
+;ADC #1                 ; (3 or 4), then call TT70, which prints "MAINLY " and
+;LSR A                  ; jumps down to TT72 to print the type of economy
+;CMP #%00000010
+;BEQ TT70
 
                         ; --- And replaced by: -------------------------------->
 
  JSR GetSpeciesSize     ; Modify the operand of the LDA instruction at TT75 to
                         ; the length of the species line and clear the screen
 
+ BEQ TT70               ; If (QQ3 + 1) >> 1 = %10, i.e. if QQ3 = %011 or %100
+                        ; (3 or 4), then call TT70, which prints "MAINLY " and
+                        ; jumps down to TT72 to print the type of economy
+
                         ; --- End of replacement ------------------------------>
-
- JSR TTX69              ; Print a paragraph break and set Sentence Case
-
- JSR TT146              ; If the distance to this system is non-zero, print
-                        ; "DISTANCE", then the distance, "LIGHT YEARS" and a
-                        ; paragraph break, otherwise just move the cursor down
-                        ; a line
-
- LDA #194               ; Print recursive token 34 ("ECONOMY") followed by
- JSR TT68               ; a colon
-
- LDA QQ3                ; The system economy is determined by the value in QQ3,
-                        ; so fetch it into A. First we work out the system's
-                        ; prosperity as follows:
-                        ;
-                        ;   QQ3 = 0 or 5 = %000 or %101 = Rich
-                        ;   QQ3 = 1 or 6 = %001 or %110 = Average
-                        ;   QQ3 = 2 or 7 = %010 or %111 = Poor
-                        ;   QQ3 = 3 or 4 = %011 or %100 = Mainly
-
- CLC                    ; If (QQ3 + 1) >> 1 = %10, i.e. if QQ3 = %011 or %100
- ADC #1                 ; (3 or 4), then call TT70, which prints "MAINLY " and
- LSR A                  ; jumps down to TT72 to print the type of economy
- CMP #%00000010
- BEQ TT70
 
  LDA QQ3                ; If (QQ3 + 1) >> 1 < %10, i.e. if QQ3 = %000, %001 or
  BCC TT71               ; %010 (0, 1 or 2), then jump to TT71 with A set to the
@@ -33853,6 +33857,13 @@ ENDIF
                         ;
                         ;   * Bit 3 = light pen interrupt
 
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+ STA VIC+$30            ; Switch the Commodore 128 to 1MHz mode so the I/O calls
+                        ; work properly (this has no effect on the Commodore 64)
+
+                        ; --- End of added code ------------------------------->
+
  CLI                    ; Allow interrupts again (or, as a comment in the
                         ; original source says, "tell Ian to go away")
 
@@ -45316,7 +45327,17 @@ ENDIF
 
  EQUB 1                 ; Lookup value to change 0 to 1
 
- EQUB 0                 ; Lookup value to change 1 to 0
+                        ; --- Mod: Code removed for Commodore 128 2MHz: ------->
+
+;EQUB 0                 ; Lookup value to change 1 to 0
+
+                        ; --- And replaced by: -------------------------------->
+
+ EQUB $FF               ; Lookup value to change 1 to $FF (to indicate we have
+                        ; reached the end of the visible portion, so we can
+                        ; switch the Commodore 128 to 2MHz)
+
+                        ; --- End of replacement ------------------------------>
 
 ; ******************************************************************************
 ;
@@ -45333,7 +45354,16 @@ ENDIF
 
  EQUB 51 + 143          ; The raster line at the top of the dashboard
 
- EQUB 51                ; The raster line at the top of the visible screen
+                        ; --- Mod: Code removed for Commodore 128 2MHz: ------->
+
+;EQUB 51                ; The raster line at the top of the visible screen
+
+                        ; --- And replaced by: -------------------------------->
+
+ EQUB 250               ; The raster line at the bottom of the visible screen so
+                        ; we can switch the Commodore 128 to 2MHz at this point
+
+                        ; --- End of replacement ------------------------------>
 
 ; ******************************************************************************
 ;
@@ -45469,6 +45499,18 @@ ENDIF
 
 .COMIRQ3
 
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+ LDA VIC+$19            ; Write the contents of VIC register &19 back to the
+ ORA #%10000000         ; same register but with bit 7 set to acknowledge all
+ STA VIC+$19            ; interrupts that are pending
+                        ;
+                        ; We do this here rather than at the start of the
+                        ; interrupt handler to prevent a tearing effect in the
+                        ; left end of the first dashboard line
+
+                        ; --- End of added code ------------------------------->
+
                         ; If we get here then we want to return from the
                         ; interrupt, so we first have to restore the registers
                         ; we want to preserve, and restore the correct memory
@@ -45524,15 +45566,26 @@ ENDIF
 
 .iansint
 
- LDA VIC+$19            ; Set bit 7 of VIC register $19, to acknowledge any IRQ
- ORA #%10000000         ; interrupts that are pending
- STA VIC+$19            ;
-                        ; I'm not sure why we acknowledge IRQ interrupts by
-                        ; setting bit 7 rather than setting bit 0 to acknowledge
-                        ; the raster interrupt, but perhaps this prevents any
-                        ; pending IRQ interrupts from being triggered and
-                        ; messing up the timing of the split screen and sound
-                        ; interrupt routines
+                        ; --- Mod: Code removed for Commodore 128 2MHz: ------->
+
+;LDA VIC+&19            ; Write the contents of VIC register &19 back to the
+;ORA #%10000000         ; same register but with bit 7 set to acknowledge all
+;STA VIC+&19            ; interrupts that are pending
+;                       ;
+;                       ; Interrupts are acknowledged by writing a set bit to
+;                       ; VIC register &19 in each bit position that corresponds
+;                       ; to the interrupt to be cleared (the raster interrupt
+;                       ; is in bit 0, for example)
+;                       ;
+;                       ; VIC register &19 contains a set bit for each pending
+;                       ; interrupt, as well as bit 7 which is set if there is
+;                       ; at least one pending interrupt
+;                       ;
+;                       ; We can therefore acknowledge all interrupts by writing
+;                       ; the contents of the register back to itself, with bit
+;                       ; 7 explicitly set to clear the bit 7 latch as well
+
+                        ; --- End of removed code ----------------------------->
 
  TXA                    ; Store X on the stack, so we can preserve it across
  PHA                    ; calls to the interrupt handler
@@ -45579,6 +45632,14 @@ ENDIF
                         ;
                         ;   * X = RASCT = 1 indicates that we are drawing the
                         ;                   lower part of the screen
+
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+ BPL P%+5               ; If bit 7 of RASTCT is set then RASCT must be &FF, so
+ JMP FasterCommodore128 ; jump to FasterCommodore128 to switch the Commodore 128
+                        ; to 2MHz mode
+
+                        ; --- End of added code ------------------------------->
 
  LDA zebop,X            ; Set VIC register $18 to the value in zebop (when
  STA VIC+$18            ; X = 0, for the upper part of the screen) or abraxas
@@ -45703,11 +45764,27 @@ ENDIF
                         ; finished exploding, so this stops the background
                         ; colour from changing
 
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+ LDA #0                 ; Switch the Commodore 128 to 1MHz mode (this has no
+ STA VIC+$30            ; effect on the Commodore 64)
+
+                        ; --- End of added code ------------------------------->
+
  LDA innersec,X         ; Set RASCT to the X-th entry from innersec, so this
  STA RASTCT             ; flips the value of RASCT from 0 to 1 or from 1 to 0
 
- BNE COMIRQ3            ; If we just flipped RASCT from 0 to 1 then jump to
-                        ; COMIRQ3 to return from the interrupt handler
+                        ; --- Mod: Code removed for Commodore 128 2MHz: ------->
+
+;BNE COMIRQ3            ; If we just flipped RASCT from 0 to 1 then jump to
+;                       ; COMIRQ3 to return from the interrupt handler
+
+                        ; --- And replaced by: -------------------------------->
+
+ TXA                    ; If we just flipped RASCT from $FF to 0 then jump to
+ BEQ COMIRQ3            ; COMIRQ3 to return from the interrupt handler
+
+                        ; --- End of replacement ------------------------------>
 
                         ; We now play the background music, if configured
                         ;
@@ -45762,10 +45839,21 @@ ENDIF
 
  LDA SOFLG,Y            ; Set A to the sound flag in SOFLG for voice Y
 
- BEQ SOUL3b             ; If the sound flag is zero then no sound effect is
-                        ; being made on voice Y, so jump to SOUL3b to move on to
+                        ; --- Mod: Code removed for Commodore 128 2MHz: ------->
+
+;BEQ SOUL3b             ; If the sound flag is zero then no sound effect is
+;                       ; being made on voice Y, so jump to SOUL3b to move on to
+;                       ; the next voice, or return from the interrupt if this
+;                       ; is the last voice
+
+                        ; --- And replaced by: -------------------------------->
+
+ BNE P%+5               ; If the sound flag is zero then no sound effect is
+ JMP SOUL3b             ; being made on voice Y, so jump to SOUL3b to move on to
                         ; the next voice, or return from the interrupt if this
                         ; is the last voice
+
+                        ; --- End of replacement ------------------------------>
 
  BMI SOUL4              ; If bit 7 of the sound flag is set then we are just
                         ; starting to make a new sound effect, so jump to SOUL4
@@ -46556,6 +46644,13 @@ ENDIF
 
  SEI                    ; Disable interrupts while we configure the VIC-II, CIA
                         ; and SID chips and update the interrupt handlers
+
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+ LDA #0                 ; Switch the Commodore 128 to 1MHz mode (this has no
+ STA VIC+$30            ; effect on the Commodore 64)
+
+                        ; --- End of added code ------------------------------->
 
 IF NOT(USA%)
 
@@ -53172,9 +53267,34 @@ ENDIF
  JSR DOXC
 
  LDA #163               ; Print recursive token 3 ("DATA ON {selected system
- JMP NLIN3              ; name}" and draw a horizontal line at pixel row 19
-                        ; to box in the title, returning from the subroutine
-                        ; using a tail call
+ JSR NLIN3              ; name}" and draw a horizontal line at pixel row 19
+                        ; to box in the title
+
+ JSR TTX69              ; Print a paragraph break and set Sentence Case
+
+ JSR TT146              ; If the distance to this system is non-zero, print
+                        ; "DISTANCE", then the distance, "LIGHT YEARS" and a
+                        ; paragraph break, otherwise just move the cursor down
+                        ; a line
+
+ LDA #194               ; Print recursive token 34 ("ECONOMY") followed by
+ JSR TT68               ; a colon
+
+ LDA QQ3                ; The system economy is determined by the value in QQ3,
+                        ; so fetch it into A. First we work out the system's
+                        ; prosperity as follows:
+                        ;
+                        ;   QQ3 = 0 or 5 = %000 or %101 = Rich
+                        ;   QQ3 = 1 or 6 = %001 or %110 = Average
+                        ;   QQ3 = 2 or 7 = %010 or %111 = Poor
+                        ;   QQ3 = 3 or 4 = %011 or %100 = Mainly
+
+ CLC                    ; If (QQ3 + 1) >> 1 = %10, i.e. if QQ3 = %011 or %100
+ ADC #1                 ; (3 or 4), then call TT70, which prints "MAINLY " and
+ LSR A                  ; jumps down to TT72 to print the type of economy
+ CMP #%00000010
+
+ RTS                    ; Return from the subroutine
 
                         ; --- End of added code ------------------------------->
 
@@ -53222,6 +53342,40 @@ ENDIF
                         ; species
 
  JMP spec3              ; Jump to spec3 to print the rest of the system data
+
+                        ; --- End of added code ------------------------------->
+
+                        ; --- Mod: Code added for Commodore 128 2MHz: --------->
+
+; ******************************************************************************
+;
+;       Name: FasterCommodore128
+;       Type: Subroutine
+;   Category: Drawing the screen
+;    Summary: Switch the Commodore 128 to 2MHz mode at the bottom of the visible
+;             screen
+;
+; ******************************************************************************
+
+.FasterCommodore128
+
+                        ; We get here when we have reached the bottom of the
+                        ; visible screen at raster line 250, at which point we
+                        ; switch the Commodore 128 to 2MHz mode (which has no
+                        ; effect on a Commodore 64)
+
+ LDA #40                ; Set VIC register $12 to 40, so we trigger the next
+ STA VIC+$12            ; raster interrupt when the VIC-II reaches line 40,
+                        ; before the top of the space view
+
+ LDA #1                 ; Switch the Commodore 128 to 2MHz mode (this has no
+ STA VIC+$30            ; effect on the Commodore 64)
+
+ INC RASTCT             ; Update RASCT from $FF to 0 so it's ready for the next
+                        ; interrupt on raster line 40
+
+ JMP COMIRQ3            ; Jump back to COMIRQ3 to restore the registers and
+                        ; return from the interrupt handler
 
                         ; --- End of added code ------------------------------->
 
