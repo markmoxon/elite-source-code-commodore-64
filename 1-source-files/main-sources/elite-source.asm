@@ -18783,34 +18783,31 @@ ENDIF
 ;LSR A                  ; jumps down to TT72 to print the type of economy
 ;CMP #%00000010
 ;BEQ TT70
+;
+;LDA QQ3                ; If (QQ3 + 1) >> 1 < %10, i.e. if QQ3 = %000, %001 or
+;BCC TT71               ; %010 (0, 1 or 2), then jump to TT71 with A set to the
+;                       ; original value of QQ3
+;
+;SBC #5                 ; Here QQ3 = %101, %110 or %111 (5, 6 or 7), so subtract
+;CLC                    ; 5 to bring it down to 0, 1 or 2 (the C flag is already
+;                       ; set so the SBC will be correct)
+;
+;.TT71
+;
+;ADC #170               ; A is now 0, 1 or 2, so print recursive token 10 + A.
+;JSR TT27               ; This means that:
+;                       ;
+;                       ;   QQ3 = 0 or 5 prints token 10 ("RICH ")
+;                       ;   QQ3 = 1 or 6 prints token 11 ("AVERAGE ")
+;                       ;   QQ3 = 2 or 7 prints token 12 ("POOR ")
 
                         ; --- And replaced by: -------------------------------->
 
  JSR GetSpeciesSize     ; Modify the operand of the LDA instruction at TT75 to
-                        ; the length of the species line and clear the screen
-
- BEQ TT70               ; If (QQ3 + 1) >> 1 = %10, i.e. if QQ3 = %011 or %100
-                        ; (3 or 4), then call TT70, which prints "MAINLY " and
-                        ; jumps down to TT72 to print the type of economy
+                        ; the length of the species line and implement the above
+                        ; code
 
                         ; --- End of replacement ------------------------------>
-
- LDA QQ3                ; If (QQ3 + 1) >> 1 < %10, i.e. if QQ3 = %000, %001 or
- BCC TT71               ; %010 (0, 1 or 2), then jump to TT71 with A set to the
-                        ; original value of QQ3
-
- SBC #5                 ; Here QQ3 = %101, %110 or %111 (5, 6 or 7), so subtract
- CLC                    ; 5 to bring it down to 0, 1 or 2 (the C flag is already
-                        ; set so the SBC will be correct)
-
-.TT71
-
- ADC #170               ; A is now 0, 1 or 2, so print recursive token 10 + A.
- JSR TT27               ; This means that:
-                        ;
-                        ;   QQ3 = 0 or 5 prints token 10 ("RICH ")
-                        ;   QQ3 = 1 or 6 prints token 11 ("AVERAGE ")
-                        ;   QQ3 = 2 or 7 prints token 12 ("POOR ")
 
 .TT72
 
@@ -32769,6 +32766,16 @@ ENDIF
 
 .TLL2
 
+                        ; --- Mod: Code added for speed control: -------------->
+
+ LDA #SPEED             ; Set the sync counter to SPEED, the minimum number of
+ STA DL                 ; vertical syncs we want to spend in the main loop
+                        ;
+                        ; We can use the DL variable, which is unused in this
+                        ; version of Elite
+
+                        ; --- End of added code ------------------------------->
+
  LDA INWK+7             ; If z_hi (the ship's distance) is 1, jump to TL1 to
  CMP #1                 ; skip the following decrement
  BEQ TL1
@@ -32801,6 +32808,13 @@ ENDIF
                         ;
                         ; This also clears the C flag if no keys are being
                         ; pressed
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+ LDA DL                 ; Wait until the sync counter reaches 0
+ BNE P%-2
+
+                        ; --- End of added code ------------------------------->
 
  DEC MCNT               ; Decrement the main loop counter
 
@@ -53293,8 +53307,30 @@ ENDIF
  ADC #1                 ; (3 or 4), then call TT70, which prints "MAINLY " and
  LSR A                  ; jumps down to TT72 to print the type of economy
  CMP #%00000010
+ BEQ gspc1
+
+ LDA QQ3                ; If (QQ3 + 1) >> 1 < %10, i.e. if QQ3 = %000, %001 or
+ BCC TT71               ; %010 (0, 1 or 2), then jump to TT71 with A set to the
+                        ; original value of QQ3
+
+ SBC #5                 ; Here QQ3 = %101, %110 or %111 (5, 6 or 7), so subtract
+ CLC                    ; 5 to bring it down to 0, 1 or 2 (the C flag is already
+                        ; set so the SBC will be correct)
+
+.TT71
+
+ ADC #170               ; A is now 0, 1 or 2, so print recursive token 10 + A.
+ JSR TT27               ; This means that:
+                        ;
+                        ;   QQ3 = 0 or 5 prints token 10 ("RICH ")
+                        ;   QQ3 = 1 or 6 prints token 11 ("AVERAGE ")
+                        ;   QQ3 = 2 or 7 prints token 12 ("POOR ")
 
  RTS                    ; Return from the subroutine
+
+.gspc1
+
+ JMP TT70               ; Jump to TT70 when (QQ3 + 1) >> 1 = %10
 
                         ; --- End of added code ------------------------------->
 
