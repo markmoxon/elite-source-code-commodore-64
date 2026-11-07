@@ -37052,7 +37052,7 @@ Saving file '3-assembled-output/ELTE.bin'
      89B1   85 0C      STA &0C
      89B3   20 BC 9A   JSR &9ABC
      89B6   20 5E 8D   JSR &8D5E
-     89B9   A5 A4      LDA &A4
+     89B9   A4 A4      LDY &A4
      89BB   D0 FC      BNE &89B9
      89BD   C6 A3      DEC &A3
      89BF   2C 4D 8D   BIT &8D4D

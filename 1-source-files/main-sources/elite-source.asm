@@ -32811,7 +32811,7 @@ ENDIF
 
                         ; --- Mod: Code added for speed control: -------------->
 
- LDA DL                 ; Wait until the sync counter reaches 0
+ LDY DL                 ; Wait until the sync counter reaches 0
  BNE P%-2
 
                         ; --- End of added code ------------------------------->
