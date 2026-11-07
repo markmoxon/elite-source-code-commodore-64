@@ -17956,12 +17956,12 @@ ENDIF
 
 .delt1
 
- JSR TR1                ; Change INWK back to the last saved commander's name
-
  JSR TidyUpAfterDisk    ; Restore the state of the system following the disk
                         ; operation
 
 .dmod2
+
+ JSR TR1                ; Change INWK back to the last saved commander's name
 
  BCS deleteerror        ; If KERNALSVE returns with the C flag set then this
                         ; indicates that a disk error occurred, so jump to
@@ -33568,9 +33568,9 @@ ENDIF
  JSR DeleteFile         ; Delete the commander file if it exists, so we can
                         ; overwrite it
 
- LDA #&B0               ; Revert the modification to restore the DeleteFile
- STA dmod2              ; routine to its previous state, by restoring the BCS
-                        ; instruction (opcode &B0)
+ LDA #&20               ; Revert the modification to restore the DeleteFile
+ STA dmod2              ; routine to its previous state, by restoring the JSR
+                        ; instruction (opcode &20)
 
                         ; --- End of replacement ------------------------------>
 

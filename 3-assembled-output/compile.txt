@@ -32679,9 +32679,9 @@ Saving file '3-assembled-output/ELTB.bin'
      3FA7   A9 01      LDA #&01
      3FA9   20 C3 FF   JSR &FFC3
 .delt1
-     3FAC   20 0C 8A   JSR &8A0C
-     3FAF   20 C2 3F   JSR &3FC2
+     3FAC   20 C2 3F   JSR &3FC2
 .dmod2
+     3FAF   20 0C 8A   JSR &8A0C
      3FB2   B0 0B      BCS &3FBF
      3FB4   A9 1C      LDA #&1C
      3FB6   20 76 23   JSR &2376
@@ -37266,10 +37266,10 @@ Saving file '3-assembled-output/ELTE.bin'
      8B24   60         RTS
 .SV1
      8B25   A9 60      LDA #&60
-     8B27   8D B2 3F   STA &3FB2
+     8B27   8D AF 3F   STA &3FAF
      8B2A   20 86 3F   JSR &3F86
-     8B2D   A9 B0      LDA #&B0
-     8B2F   8D B2 3F   STA &3FB2
+     8B2D   A9 20      LDA #&20
+     8B2F   8D AF 3F   STA &3FAF
      8B32   20 FC 89   JSR &89FC
      8B35   4E E2 04   LSR &04E2
      8B38   A9 04      LDA #&04
