@@ -129,7 +129,7 @@
 
  BPL relo1              ; Loop back until we have copied the whole program
 
- JMP RunGMA             ; Jump to the newly relocated RunDMA routine to load and
+ JMP RunGMA             ; Jump to the newly relocated RunGMA routine to load and
                         ; run the first GMA file on disk
 
 ; ******************************************************************************

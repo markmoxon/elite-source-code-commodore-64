@@ -43904,15 +43904,22 @@ ENDIF
 
 .iansint
 
- LDA VIC+$19            ; Set bit 7 of VIC register $19, to acknowledge any IRQ
- ORA #%10000000         ; interrupts that are pending
- STA VIC+$19            ;
-                        ; I'm not sure why we acknowledge IRQ interrupts by
-                        ; setting bit 7 rather than setting bit 0 to acknowledge
-                        ; the raster interrupt, but perhaps this prevents any
-                        ; pending IRQ interrupts from being triggered and
-                        ; messing up the timing of the split screen and sound
-                        ; interrupt routines
+ LDA VIC+$19            ; Write the contents of VIC register $19 back to the
+ ORA #%10000000         ; same register but with bit 7 set to acknowledge all
+ STA VIC+$19            ; interrupts that are pending
+                        ;
+                        ; Interrupts are acknowledged by writing a set bit to
+                        ; VIC register $19 in each bit position that corresponds
+                        ; to the interrupt to be cleared (the raster interrupt
+                        ; is in bit 0, for example)
+                        ;
+                        ; VIC register $19 contains a set bit for each pending
+                        ; interrupt, as well as bit 7 which is set if there is
+                        ; at least one pending interrupt
+                        ;
+                        ; We can therefore acknowledge all interrupts by writing
+                        ; the contents of the register back to itself, with bit
+                        ; 7 explicitly set to clear the bit 7 latch as well
 
  TXA                    ; Store X on the stack, so we can preserve it across
  PHA                    ; calls to the interrupt handler
