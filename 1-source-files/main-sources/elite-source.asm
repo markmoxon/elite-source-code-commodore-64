@@ -30618,6 +30618,32 @@ ENDIF
 
 ; ******************************************************************************
 ;
+;       Name: WaitForSync
+;       Type: Subroutine
+;   Category: Main loop
+;    Summary: Pause until the sync counter reaches zero
+;
+; ******************************************************************************
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+.WaitForSync
+
+ LDY DL                 ; Wait until the sync counter reaches 0
+ BNE WaitForSync
+
+ LDY #SPEED             ; Set the sync counter to SPEED, the minimum number of
+ STY DL                 ; vertical syncs we want to spend in the main loop
+                        ;
+                        ; We can use the DL variable, which is unused in this
+                        ; version of Elite
+
+ RTS                    ; Return from the subroutine
+
+                        ; --- End of added code ------------------------------->
+
+; ******************************************************************************
+;
 ;       Name: Main game loop (Part 1 of 6)
 ;       Type: Subroutine
 ;   Category: Main loop
@@ -30748,24 +30774,7 @@ ENDIF
 
 .TT100
 
-                        ; --- Mod: Code added for speed control: -------------->
-
- LDA #SPEED             ; Set the sync counter to SPEED, the minimum number of
- STA DL                 ; vertical syncs we want to spend in the main loop
-                        ;
-                        ; We can use the DL variable, which is unused in this
-                        ; version of Elite
-
-                        ; --- End of added code ------------------------------->
-
  JSR M%                 ; Call M% to iterate through the main flight loop
-
-                        ; --- Mod: Code added for speed control: -------------->
-
- LDA DL                 ; Wait until the sync counter reaches 0
- BNE P%-2
-
-                        ; --- End of added code ------------------------------->
 
  DEC DLY                ; Decrement the delay counter in DLY, so any in-flight
                         ; messages get removed once the counter reaches zero
@@ -31322,6 +31331,12 @@ ENDIF
  LDX #$FF               ; Set the stack pointer to $01FF, which is the standard
  TXS                    ; location for the 6502 stack, so this instruction
                         ; effectively resets the stack
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+ JSR WaitForSync        ; Wait until the sync counter reaches 0
+
+                        ; --- End of added code ------------------------------->
 
  LDX GNTMP              ; If the laser temperature in GNTMP is non-zero,
  BEQ EE20               ; decrement it (i.e. cool it down a bit)
@@ -32238,6 +32253,12 @@ ENDIF
  BPL BEL1               ; Loop back to BEL1 to zero the next byte, until we have
                         ; zeroed them all
 
+                        ; --- Mod: Code added for speed control: -------------->
+
+ STA DL                 ; Zero the sync counter
+
+                        ; --- End of added code ------------------------------->
+
                         ; --- Mod: Code added for improved disk menu: --------->
 
  DEC DISK               ; Enable disk by default
@@ -32766,16 +32787,6 @@ ENDIF
 
 .TLL2
 
-                        ; --- Mod: Code added for speed control: -------------->
-
- LDA #SPEED             ; Set the sync counter to SPEED, the minimum number of
- STA DL                 ; vertical syncs we want to spend in the main loop
-                        ;
-                        ; We can use the DL variable, which is unused in this
-                        ; version of Elite
-
-                        ; --- End of added code ------------------------------->
-
  LDA INWK+7             ; If z_hi (the ship's distance) is 1, jump to TL1 to
  CMP #1                 ; skip the following decrement
  BEQ TL1
@@ -32811,8 +32822,7 @@ ENDIF
 
                         ; --- Mod: Code added for speed control: -------------->
 
- LDY DL                 ; Wait until the sync counter reaches 0
- BNE P%-2
+ JSR WaitForSync        ; Wait until the sync counter reaches 0
 
                         ; --- End of added code ------------------------------->
 
@@ -45530,16 +45540,6 @@ ENDIF
                         ; we want to preserve, and restore the correct memory
                         ; configuration
 
-                        ; --- Mod: Code added for speed control: -------------->
-
- LDX DL                 ; Decrement the sync counter that we use to control the
- BEQ P%+4               ; speed of the main flight loop, not going past zero
- DEC DL                 ;
-                        ; We can use the DL variable, which is unused in this
-                        ; version of Elite
-
-                        ; --- End of added code ------------------------------->
-
  PLA                    ; Retrieve the value of X we stored on the stack at the
  TAX                    ; start of the interrupt routine, so it is preserved
 
@@ -45651,7 +45651,7 @@ ENDIF
 
  BPL P%+5               ; If bit 7 of RASTCT is set then RASCT must be &FF, so
  JMP FasterCommodore128 ; jump to FasterCommodore128 to switch the Commodore 128
-                        ; to 2MHz mode
+                        ; to 2MHz mode and set RASCT to zero
 
                         ; --- End of added code ------------------------------->
 
@@ -45795,10 +45795,33 @@ ENDIF
 
                         ; --- And replaced by: -------------------------------->
 
- TXA                    ; If we just flipped RASCT from $FF to 0 then jump to
- BEQ COMIRQ3            ; COMIRQ3 to return from the interrupt handler
+ TXA                    ; If we just flipped RASCT from 0 to 1 (i.e. when X = 0)
+ BEQ COMIRQ3            ; then jump to COMIRQ3 to return from the interrupt
+                        ; handler
 
                         ; --- End of replacement ------------------------------>
+
+                        ; --- Mod: Code added for speed control: -------------->
+
+                        ; We only get here once every frame
+                        ;
+                        ; If we entered the interrupt handler with RASCT = &FF
+                        ; then we will have jumped to FasterCommodore128 above,
+                        ; which returns via COMIRQ3
+                        ;
+                        ; If we entered the interrupt handler with RASCT = 0
+                        ; then we will have just jumped to COMIRQ3 via the BEQ
+                        ;
+                        ; So we only get here if we enter the interrupt handler
+                        ; with RASCT = 1, which is once per vertical sync
+
+ LDA DL                 ; Decrement the sync counter that we use to control the
+ BEQ P%+4               ; speed of the main flight loop, not going past zero
+ DEC DL                 ;
+                        ; We can use the DL variable, which is unused in this
+                        ; version of Elite
+
+                        ; --- End of added code ------------------------------->
 
                         ; We now play the background music, if configured
                         ;
