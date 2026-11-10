@@ -14406,6 +14406,12 @@ ENDIF
 
 .HFL1
 
+                        ; --- Mod: Code added for speed control: -------------->
+
+ JSR WaitForSync        ; Wait until the sync counter reaches 0
+
+                        ; --- End of added code ------------------------------->
+
  LDA XX4                ; Set K to the ring number in XX4 (0-7) + 8, so K has
  AND #7                 ; a value of 8 to 15, which we will use as the starting
  CLC                    ; radius for our next set of rings
